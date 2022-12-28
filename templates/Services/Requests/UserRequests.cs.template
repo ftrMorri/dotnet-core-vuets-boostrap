@@ -1,4 +1,4 @@
-namespace MySolution.Services.Requests
+namespace [[NAME]].Services.Requests
 {
     public class UserCreateRequest
     {
