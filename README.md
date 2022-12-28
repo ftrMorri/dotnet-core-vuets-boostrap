@@ -17,7 +17,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/StarterTool/bin/Debug/net7.0/StarterTool.dll",
+            "program": "${workspaceFolder}/ConsoleApp/bin/Debug/net7.0/ConsoleApp.dll",
             "args": ["-iTrue", "-l../Bootstrapper_Generated/", "-nBootstrapDemo", "-s.\\SQLEXPRESS", "-dBootstrapDemo", "-ubootstrapdemouser", "-pbootstrapdemopass"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
