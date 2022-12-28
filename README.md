@@ -6,6 +6,7 @@
 * Dotnet 7 SDK ( https://dotnet.microsoft.com/en-us/download/dotnet/7.0 )
 * Node / Npm latest versions ( https://nodejs.org/en/ )
 * SQL Server ( https://www.microsoft.com/en-us/sql-server/sql-server-downloads )
+* OpenApi Generator ( npm install @openapitools/openapi-generator-cli -g )
 
 ### Add following to .vscode/launch.json
 
