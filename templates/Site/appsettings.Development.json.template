@@ -1,0 +1,16 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=[[DBSERVER]];Database=[[DBNAME]];User Id=[[DBUSER]];Password=[[DBPASS]];TrustServerCertificate=True"
+  },
+  "JWT": {
+    "ValidAudience": "http://localhost",
+    "ValidIssuer": "http://localhost",
+    "Secret": "hregbJWTPASSWORD_77d46274-c0ff-476f-8e24-88632c3f9040"
+  }
+}

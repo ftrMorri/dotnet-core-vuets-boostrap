@@ -1,0 +1,30 @@
+using Microsoft.EntityFrameworkCore;
+using [[NAME]].Data.Configuration;
+
+namespace [[NAME]].Services.Services
+{
+    public class WeatherForecastService : IWeatherForecastService
+    {
+        private readonly MySolutionContext _db;
+        public WeatherForecastService(MySolutionContext context)
+        {
+            _db = context;
+        }
+
+        public async Task<List<Models.WeatherForecastModel>> GetAll()
+        {
+            return (await _db.WeatherForecasts.ToListAsync()).Select(f => new Models.WeatherForecastModel
+            {
+                WeatherForecastId = f.WeatherForecastId,
+                Date = f.Date,
+                Summary = f.Summary,
+                TemperatureC = f.TemperatureC
+            }).ToList();
+        }
+    }
+
+    public interface IWeatherForecastService
+    {
+        Task<List<Models.WeatherForecastModel>> GetAll();
+    }
+}

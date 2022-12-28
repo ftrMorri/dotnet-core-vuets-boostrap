@@ -1,0 +1,7 @@
+<script async setup lang="ts">
+
+</script>
+
+<template>
+    <h2>This is about page</h2>
+</template>

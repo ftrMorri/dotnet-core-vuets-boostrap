@@ -1,0 +1,48 @@
+import { RouteRecordRaw } from "vue-router";
+const Router: Array<RouteRecordRaw> = [
+  {
+    path: "/home",
+    name: "home",
+    component: () => import("../layouts/Home.vue"),
+    children: [
+      {
+        path: "forecasts",
+        name: "forecasts",
+        component: () => import("../pages/Forecasts.vue"),
+      },
+      {
+        path: "about",
+        name: "about",
+        component: () => import("../pages/About.vue"),
+      },
+      {
+        path: "testAuth",
+        name: "testAuth",
+        component: () => import("../pages/RequiresAuth.vue"),
+      },
+    ],
+  },
+  {
+    path: "/user",
+    name: "user",
+    component: () => import("../layouts/User.vue"),
+    children: [
+      {
+          path: "manage",
+          name: "manage",
+          component: () => import("../pages/ManageUsers.vue"),
+      },
+      {
+        path: "createUser",
+        name: "createUser",
+        component: () => import("../pages/CreateUser.vue"),
+    },
+    ]
+  },
+  {
+    path: "/login",
+    name: "login",
+    component: () => import("../layouts/Login.vue"),
+  },
+];
+export default Router;

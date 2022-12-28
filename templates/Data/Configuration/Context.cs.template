@@ -1,0 +1,33 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using [[NAME]].Data.Models;
+
+namespace [[NAME]].Data.Configuration
+{
+    public class MySolutionContext : IdentityDbContext<IdentityUser>
+    {
+        public MySolutionContext (DbContextOptions<MySolutionContext> options)
+            : base(options)
+        {
+        }
+
+        public DbSet<WeatherForecast> WeatherForecasts => Set<WeatherForecast>();
+        public DbSet<AspNetUserRefreshToken> AspNetUserRefreshTokens => Set<AspNetUserRefreshToken>();
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<WeatherForecast>().ToTable("WeatherForecast");
+            builder.Entity<WeatherForecast>().HasKey(o => o.WeatherForecastId);
+            builder.Entity<WeatherForecast>().Property(o => o.WeatherForecastId)
+                .ValueGeneratedOnAdd();
+            builder.Entity<WeatherForecast>().Property(o => o.Summary)
+                .HasMaxLength(255);
+
+            builder.Entity<AspNetUserRefreshToken>().ToTable("AspNetUserRefreshTokens");
+            builder.Entity<AspNetUserRefreshToken>().HasKey(o => o.RefreshTokenId);
+        }
+    }
+}

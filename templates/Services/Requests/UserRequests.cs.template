@@ -1,0 +1,13 @@
+namespace MySolution.Services.Requests
+{
+    public class UserCreateRequest
+    {
+        public string Email { get; set; } = default!;
+        public string Password { get; set; } = default!;
+    }
+
+    public class UserSearchRequest
+    {
+        public string Email { get; set; } = default!;
+    }    
+}

@@ -1,0 +1,49 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using [[NAME]].Services.Models;
+using [[NAME]].Services.Services;
+
+namespace [[NAME]].Site.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class WeatherForecastController : ControllerBase
+{
+    private static readonly string[] Summaries = new[]
+    {
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    };
+
+    private readonly ILogger<WeatherForecastController> _logger;
+    private readonly IWeatherForecastService _weatherForecastService;
+    private readonly IConfiguration _configuration;
+    
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration, IWeatherForecastService weatherForecastService)
+    {
+        _logger = logger;
+        _configuration = configuration;
+        _weatherForecastService = weatherForecastService;
+    }
+
+    [HttpGet(), Route("forecast", Name = "GetWeatherForecast")]
+    public async Task<List<WeatherForecastModel>> Get()
+    {
+        return await _weatherForecastService.GetAll();
+    }
+
+    [Authorize]
+    [HttpGet(), Route("testAuth", Name = "TestAuth")]
+    public string TestAuth()
+    {
+        return "Api TestAuth method response";
+    }
+
+    [Authorize(Roles = "Administrator")]
+    [HttpGet(), Route("testAuthz", Name = "TestAuthz")]
+    public string TestAuthz()
+    {
+        return "Api TestAuthz method response";
+    }
+
+}

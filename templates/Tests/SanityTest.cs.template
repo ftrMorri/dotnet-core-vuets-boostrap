@@ -1,0 +1,11 @@
+namespace [[NAME]].Tests;
+
+[TestClass]
+public class SanityTest
+{
+    [TestMethod]
+    public void Sanity()
+    {
+        Assert.AreEqual(1, 1);
+    }
+}

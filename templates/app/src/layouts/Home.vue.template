@@ -1,0 +1,98 @@
+<script setup lang="ts">
+import { ref, Suspense } from 'vue'
+import { RouterView } from 'vue-router';
+
+const leftDrawerOpen = ref(true);
+
+const menuList = [
+  {
+    icon: "inbox",
+    label: "Forecasts",
+    path: "/home/forecasts",
+    separator: true
+  },
+  {
+    icon: 'send',
+    label: 'About',
+    path: "/home/about",
+    separator: false
+  },
+  {
+    icon: 'send',
+    label: 'Test auth',
+    path: "/home/testAuth",
+    separator: false
+  },
+];
+
+function toggleLeftDrawer() {
+    leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+</script>
+
+<template>
+    <q-layout view="hhh lpR lpR">
+
+        <q-header elevated class="bg-primary text-white" height-hint="98">
+            <q-toolbar>
+                <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
+
+                <q-toolbar-title>
+                    <q-avatar>
+                        <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
+                    </q-avatar>
+                    Home.vue
+                </q-toolbar-title>
+            </q-toolbar>
+
+            <q-tabs align="left">
+                <q-route-tab to="/home" label="Home" />
+                <q-route-tab to="/user" label="User" />
+                <q-route-tab to="/login" label="Login" />                
+            </q-tabs>
+        </q-header>
+
+        <q-drawer show-if-above v-model="leftDrawerOpen" side="left" behavior="desktop" bordered :width="200">
+            <q-scroll-area class="fit">
+                <q-list>
+                    <template v-for="(menuItem, index) in menuList" :key="index">
+                        <q-item :to="menuItem.path" clickable :active="menuItem.label === 'Outbox'" v-ripple>
+                            <q-item-section avatar>
+                                <q-icon :name="menuItem.icon" />
+                            </q-item-section>
+                            <q-item-section>
+                                {{ menuItem.label }}
+                            </q-item-section>
+                        </q-item>
+                        <q-separator :key="'sep' + index" v-if="menuItem.separator" />
+                    </template>
+                </q-list> </q-scroll-area>
+        </q-drawer>
+
+        <q-page-container>
+            <RouterView v-slot="{ Component }">
+                <template v-if="Component">
+                    <Suspense>
+                        <component :is="Component"></component>
+                        <template #fallback>
+                            ... LOADING ...
+                        </template>
+                    </Suspense>
+                </template>
+            </RouterView>
+        </q-page-container>
+
+        <q-footer elevated class="bg-grey-8 text-white">
+            <q-toolbar>
+                <q-toolbar-title>
+                    <q-avatar>
+                        <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
+                    </q-avatar>
+                    <div>Title</div>
+                </q-toolbar-title>
+            </q-toolbar>
+        </q-footer>
+
+    </q-layout>
+</template>

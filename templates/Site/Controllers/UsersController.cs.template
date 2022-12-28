@@ -1,0 +1,81 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using [[NAME]].Services.Models;
+using [[NAME]].Services.Requests;
+
+namespace [[NAME]].Site.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly ILogger<UsersController> _logger;
+    private readonly IConfiguration _configuration;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
+
+    public UsersController(ILogger<UsersController> logger, IConfiguration configuration, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+    {
+        _logger = logger;
+        _configuration = configuration;
+        _userManager = userManager;
+        _roleManager = roleManager;
+    }
+
+    [HttpPost(), Route("createUser", Name = "CreateUser")]
+    public async Task<UserModel> CreateUser([AsParameters]UserCreateRequest request)
+    {
+        var existing = await _userManager.FindByEmailAsync(request.Email.ToLower());
+        if (existing != null)
+        {
+            throw new Exception("Invalid create user request");
+        }
+
+        var result = await _userManager.CreateAsync(new IdentityUser
+        {
+            UserName = request.Email.ToLower(),
+            Email = request.Email.ToLower(),
+            NormalizedEmail = request.Email.ToLower(),
+            NormalizedUserName = request.Email.ToLower(),
+            SecurityStamp = Guid.NewGuid().ToString()
+        },
+        request.Password);
+
+        var createdUser = await _userManager.FindByEmailAsync(request.Email.ToLower());
+
+        if (createdUser == null)
+            throw new Exception("Error creating user.");
+
+        await _userManager.AddToRoleAsync(createdUser, "administrator");
+
+        if (createdUser == null)
+            throw new Exception("User creation failed");
+
+        return new UserModel
+        {
+            Id = createdUser.Id,
+            Email = createdUser.Email,
+            UserName = createdUser.UserName
+        };
+    }
+
+    [HttpPost(), Route("searchUsers", Name = "SearchUsers")]
+    public async Task<List<UserModel>> SearchUsers([AsParameters]UserSearchRequest request)
+    {
+        var query = _userManager.Users;
+
+        if (!string.IsNullOrEmpty(request.Email))
+        {
+            query = query.Where(u => u.NormalizedEmail != null && u.NormalizedEmail.Contains(request.Email.ToLower()));
+        }
+        var result = await query.ToListAsync();
+        return result.Select(u => new UserModel
+        {
+            Id = u.Id,
+            Email = u.Email,
+            UserName = u.UserName
+        }).ToList();
+    }
+}

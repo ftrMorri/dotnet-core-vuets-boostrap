@@ -1,0 +1,82 @@
+import axios from "axios";
+import { Configuration, UsersApi, WeatherForecastApi, AuthApi } from "./generated";
+
+const configuration = new Configuration({
+  basePath: window.location.origin,
+});
+
+let axiosInstance = axios.create({
+    baseURL: window.location.origin,
+});
+
+const refreshTokenFn = async () => {
+    const tokens = JSON.parse(localStorage.getItem("tokens") ?? "{}");
+  
+    try {
+      const response = await axiosInstance.post("/api/auth/renew", {
+        accessToken: tokens?.accessToken,
+        refreshToken: tokens?.refreshToken,
+      });
+  
+      const { renewResponse } = response.data;
+  
+      if (!renewResponse?.accessToken) {
+        localStorage.removeItem("tokens");
+      }
+  
+      localStorage.setItem("tokens", JSON.stringify(renewResponse));
+  
+      return renewResponse;
+    } catch (error) {
+      localStorage.removeItem("session");
+    }
+  };
+
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    const tokens = JSON.parse(localStorage.getItem("tokens") ?? "{}");
+
+    if (tokens?.accessToken) {
+      config.headers = {
+        ...config.headers,
+        authorization: `Bearer ${tokens?.accessToken}`,
+      };
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error?.config;
+    console.log("axios.interceptors.response.use(");
+    if (error?.response?.status === 401 && !config?.sent) {
+      config.sent = true;
+
+      const result = await refreshTokenFn();
+
+      if (result?.accessToken) {
+        config.headers = {
+          ...config.headers,
+          authorization: `Bearer ${result?.accessToken}`,
+        };
+      }
+
+      return axios(config);
+    }
+    return Promise.reject(error);
+  }
+);
+
+const weatherForecastApi = new WeatherForecastApi(configuration, undefined, axiosInstance);
+const usersApi = new UsersApi(configuration, undefined, axiosInstance);
+const authApi = new AuthApi(configuration, undefined, axiosInstance);
+
+export default {
+  weatherForecastApi,
+  usersApi,
+  authApi,
+};

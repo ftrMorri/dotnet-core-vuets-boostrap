@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "npm generate api",
+            "command": "npx",
+            "type": "shell",
+            "args": [
+                "@openapitools/openapi-generator-cli",
+                "generate",
+                "-i",
+                "http://localhost:5177/swagger/v1/swagger.json",
+                "-g",
+                "typescript-axios",
+                "-o",
+                "src/generated/",
+            ]
+        },
+        {
+            "label": "npm run dev",
+            "command": "npm",
+            "type": "shell",
+            "args": [
+                "run",
+                "dev"
+            ]
+        }
+    ]
+}

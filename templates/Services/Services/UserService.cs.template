@@ -1,0 +1,61 @@
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
+using [[NAME]].Data.Configuration;
+using [[NAME]].Data.Models;
+
+namespace [[NAME]].Services.Services
+{
+    public class UserService : IUserService
+    {
+        private readonly MySolutionContext _db;
+        public UserService(MySolutionContext context)
+        {
+            _db = context;
+        }
+
+        public async Task<string> CreateRefreshToken(string? username, string accessToken)
+        {
+            if (username == null)
+                throw new ArgumentNullException(nameof(username));
+
+            var refreshToken = GenerateRefreshToken();
+
+            _db.AspNetUserRefreshTokens.Add(new AspNetUserRefreshToken
+            {
+                RefreshTokenId = Guid.NewGuid(),
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                Username = username,
+                ValidTo = DateTime.Now.AddMonths(1)
+            });
+
+            await _db.SaveChangesAsync();
+
+            return refreshToken;
+        }
+
+        public async Task<AspNetUserRefreshToken?> GetRefreshToken(string username, string refreshToken)
+        {
+            return await _db.AspNetUserRefreshTokens
+                .FirstOrDefaultAsync(t => t.Username == username 
+                    && t.RefreshToken == refreshToken 
+                    && t.ValidTo > DateTime.Now);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+    }
+
+    public interface IUserService
+    {
+        Task<string> CreateRefreshToken(string? username, string token);
+        Task<AspNetUserRefreshToken?> GetRefreshToken(string username, string refreshToken);
+    }
+}

@@ -1,0 +1,28 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace [[NAME]].Services.Requests
+{
+
+    public class AuthenticationRequest
+    {
+        [Required]
+        public string Username { get; set; } = default!;
+        [Required]
+        public string Password { get; set; } = default!;
+    }
+
+    public class AuthenticationResponse
+    {
+        public string? Status { get; set; }
+        public string? Message { get; set; }
+        public string? Token { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime Expiration { get; set; }
+    }
+
+    public class RenewRequest
+    {
+        public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
+    }
+}

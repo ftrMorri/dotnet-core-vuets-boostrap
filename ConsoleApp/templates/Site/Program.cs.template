@@ -1,0 +1,46 @@
+using Microsoft.AspNetCore.Builder;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddSpaStaticFiles(config => 
+{
+    config.RootPath = "dist";
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    app.UseDeveloperExceptionPage();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.UseRouting();
+app.MapControllers();
+
+app.MapWhen(x => !(x.Request.Path.Value ?? "").StartsWith("/api"), builder =>
+{
+    builder.UseSpa(builder2 => {
+        if (app.Environment.IsDevelopment())
+        {
+            builder2.UseProxyToSpaDevelopmentServer("http://localhost:5173/");
+        }
+    });
+});
+
+
+app.Run();

@@ -1,0 +1,106 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using [[NAME]].Data.Configuration;
+using [[NAME]].Services.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+ConfigurationManager _configuration = builder.Configuration;
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddSpaStaticFiles(config => 
+{
+    config.RootPath = "dist";
+});
+
+builder.Services.AddDbContext<MySolutionContext>(
+        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+
+builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
+        options.SignIn.RequireConfirmedAccount = false;
+        options.User.RequireUniqueEmail = true;
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+    })
+    .AddEntityFrameworkStores<MySolutionContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(options => 
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;    
+})
+.AddJwtBearer(options => {
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidAudience = _configuration["JWT:ValidAudience"],
+        ValidIssuer = _configuration["JWT:ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"] ?? "")),
+    };
+    options.Events = new JwtBearerEvents()
+    {
+        OnAuthenticationFailed = context => {
+            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            {
+                context.Response.Headers.Add("IS-TOKEN-EXPIRED", "true");
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization(options => {
+    
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    app.UseDeveloperExceptionPage();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();
+
+app.MapWhen(x => !(x.Request.Path.Value ?? "").StartsWith("/api"), builder =>
+{
+    builder.UseSpa(builder2 => {
+        if (app.Environment.IsDevelopment())
+        {
+            builder2.UseProxyToSpaDevelopmentServer("http://localhost:5173/");
+        }
+    });
+});
+
+
+app.Run();

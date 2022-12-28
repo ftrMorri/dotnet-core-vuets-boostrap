@@ -1,0 +1,24 @@
+import { createApp } from 'vue'
+import './style.css'
+import App from './App.vue'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import Router from './routes/Routes';
+
+// Quasar
+import { Quasar } from 'quasar'
+import '@quasar/extras/material-icons/material-icons.css'
+import 'quasar/src/css/index.sass'
+
+const routes: Array<RouteRecordRaw> = [...Router];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+});
+
+const app = createApp(App);
+app.use(router);
+app.use(Quasar, {
+  plugins: {},
+});
+app.mount('#app');

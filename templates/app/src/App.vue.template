@@ -1,0 +1,27 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const leftDrawerOpen = ref(true);
+
+function toggleLeftDrawer() {
+    leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+</script>
+
+<template>
+    <q-layout>
+        <q-page-container>
+            <RouterView v-slot="{ Component }">
+                <template v-if="Component">
+                    <Suspense>
+                        <component :is="Component"></component>
+                        <template #fallback>
+                            ... LOADING ...
+                        </template>
+                    </Suspense>
+                </template>
+            </RouterView>
+        </q-page-container>
+    </q-layout>
+</template>
