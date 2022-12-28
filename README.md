@@ -38,6 +38,12 @@
 - Open solution in Visual Studio or VSCode
 - Check lauch settings for correct parameters ( path, database etc )
 - Run with F5
+- Open x-app folder with VSCode ( Volar plugin preferred )
+- Open solution with Visual Studio or VSCode
+- Start backend with F5
+- In frontend VSCode, CTRL-P, task > generate api
+- In frontend VSCode, CTRL-P, task > run dev
+- Browse to http://localhost:5177/home/
 
 ### Todo
 
