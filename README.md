@@ -61,3 +61,4 @@
 - [ ] Generic errorhandling for frontend ( toast or something similiar )
 - [ ] Generic errorhandling for backend ( file logging )
 - [ ] Generic paging mechanic example for frontend/backend
+- [ ] Use EF database migrations instead of .sql script -> support multiple databases
