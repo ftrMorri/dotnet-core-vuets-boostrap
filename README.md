@@ -33,6 +33,12 @@
 }
 ```
 
+### How to use
+
+- Open solution in Visual Studio or VSCode
+- Check lauch settings for correct parameters ( path, database etc )
+- Run with F5
+
 ### Todo
 
 - [ ] Learn github best practices
