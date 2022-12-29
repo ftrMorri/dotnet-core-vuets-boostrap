@@ -52,8 +52,6 @@
 - [ ] Security
 - [ ] Security
 - [ ] Security
-- [ ] Cleaner menu rendering
-- [ ] Clean up layout/page structure duplicate code
 - [ ] Sanity check: check for requirements before starting
 - [ ] Better way to create first user
 - [ ] Configure @-paths for typescript
