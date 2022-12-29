@@ -3,46 +3,93 @@ const Router: Array<RouteRecordRaw> = [
   {
     path: "/home",
     name: "home",
-    component: () => import("../layouts/Home.vue"),
+    component: () => import("../pages/home/Home.vue"),
+    meta: {
+      "icon": "inbox",
+      "label": "Home",
+      "show": true,
+    },
     children: [
       {
         path: "forecasts",
         name: "forecasts",
-        component: () => import("../pages/Forecasts.vue"),
+        component: () => import("../pages/home/Forecasts.vue"),
+        meta: {
+          "icon": "inbox",
+          "label": "Forecasts",
+          "separator": true,
+          "show": true,
+        }
       },
       {
         path: "about",
         name: "about",
-        component: () => import("../pages/About.vue"),
+        component: () => import("../pages/home/About.vue"),
+        meta: {
+          "icon": "inbox",
+          "label": "about",
+          "separator": true,
+          "show": true,
+        }
       },
       {
         path: "testAuth",
         name: "testAuth",
-        component: () => import("../pages/RequiresAuth.vue"),
+        component: () => import("../pages/home/RequiresAuth.vue"),
+        meta: {
+          "icon": "inbox",
+          "label": "Test Auth",
+          "separator": false,
+          "show": true,
+        }
       },
     ],
   },
   {
     path: "/user",
     name: "user",
-    component: () => import("../layouts/User.vue"),
+    component: () => import("../pages/user/User.vue"),
+    meta: {
+      "icon": "inbox",
+      "label": "Users",
+      "separator": false,
+      "show": true,
+    },
     children: [
       {
           path: "manage",
           name: "manage",
-          component: () => import("../pages/ManageUsers.vue"),
+          component: () => import("../pages/user/ManageUsers.vue"),
+          meta: {
+            "icon": "inbox",
+            "label": "Manage",
+            "separator": true,
+            "show": true,
+          }  
       },
       {
         path: "createUser",
         name: "createUser",
-        component: () => import("../pages/CreateUser.vue"),
+        component: () => import("../pages/user/CreateUser.vue"),
+        meta: {
+          "icon": "inbox",
+          "label": "Create User",
+          "separator": false,
+          "show": true,
+        }
     },
     ]
   },
   {
     path: "/login",
     name: "login",
-    component: () => import("../layouts/Login.vue"),
+    component: () => import("../pages/login/Login.vue"),
+    meta: {
+      "icon": "inbox",
+      "label": "Login",
+      "separator": false,
+      "show": true,
+    }
   },
 ];
 export default Router;
