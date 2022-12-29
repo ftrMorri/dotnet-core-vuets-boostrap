@@ -1,0 +1,44 @@
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import api from '../../api';
+import { AuthenticationRequest } from '../../generated';
+
+interface State {
+    request: AuthenticationRequest,
+    loading: boolean,
+}
+
+const state: State = reactive({
+    request: {
+        username: "",
+        password: ""
+    },
+    loading: false,
+});
+
+async function login() {
+    state.loading = true;
+    const response = await api.authApi.login(state.request);
+    if (response.data.status === "Failed") {
+        alert("login failed");
+    } else {
+        localStorage.setItem("tokens", JSON.stringify({ accessToken: response.data.token, refreshToken: response.data.refreshToken }));
+    }
+    state.loading = false;
+}
+
+</script>
+
+<template>
+    <q-page-container>
+        <q-input v-model="state.request.username" label="Username/Email" />
+        <q-input type="password" v-model="state.request.password" label="Password" />
+
+        <q-btn
+            @click="login"
+        >
+            Login
+        </q-btn>    
+
+    </q-page-container>
+</template>

@@ -1,0 +1,19 @@
+<script setup lang="ts">
+import MenuItemLeftMenu from '../../components/MenuItemLeftMenu.vue';
+import MenuItemMainMenu from '../../components/MenuItemMainMenu.vue';
+import { ref, Suspense } from 'vue'
+import { RouterView, RouteRecordRaw, useRouter, useRoute } from 'vue-router';
+</script>
+
+<template>
+    <RouterView v-slot="{ Component }">
+        <template v-if="Component">
+            <Suspense>
+                <component :is="Component"></component>
+                <template #fallback>
+                    ... LOADING ...
+                </template>
+            </Suspense>
+        </template>
+    </RouterView>
+</template>

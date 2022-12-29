@@ -1,0 +1,35 @@
+<script async setup lang="ts">
+import { reactive } from 'vue'
+import api from '../../api';
+import { UserModel } from '../../generated';
+
+interface State {
+    users: UserModel[]
+}
+
+const state: State = reactive({
+    users: []
+});
+
+state.users = (await api.usersApi.searchUsers({ email: ""})).data;
+
+</script>
+
+<template>
+    <h2>Manage users</h2>
+    
+    <q-table
+        title="Users"
+        :rows="state.users"
+        :columns="[
+            { name: 'id', required: true, label: 'id', field: row => row.id },
+            { name: 'userName',label: 'User name', field: row => row.userName },
+            ]"
+    />
+
+    <q-btn
+        :to="{ name: 'createUser' }"
+    >
+        Create user
+    </q-btn>
+</template>

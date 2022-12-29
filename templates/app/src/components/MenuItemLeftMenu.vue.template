@@ -1,0 +1,47 @@
+<script lang="ts">
+  export default {
+    name: 'menu-item-left-menu',
+  }
+</script>
+
+<script async setup lang="ts">
+import { PropType } from 'vue';
+import { RouteRecordRaw } from 'vue-router';
+
+const props = defineProps({
+  route: {
+    type: Object as PropType<RouteRecordRaw>, 
+    required: true,
+  },
+  menuLevel: { type: Number, required: true },
+  renderSubLevelCount: { type: Number, required: true },
+});
+
+const visibleChildren = props.route.children?.filter(c => c.meta?.show === true);
+const hasChildren = visibleChildren !== undefined && visibleChildren.values.length > 0;
+
+</script>
+
+<template>
+    <div>
+      <q-item :to="{name: route.name}" clickable :active="false" v-ripple>
+            <q-item-section avatar>
+                <q-icon :name="(route.meta?.icon as string)" />
+            </q-item-section>
+            <q-item-section>
+                {{ route.meta?.label }}
+            </q-item-section>
+        </q-item>
+        <q-separator v-if="route.meta?.separator" />
+        
+        <div v-if="hasChildren && renderSubLevelCount - 1 >= 0" class="q-ml-xs">
+            <menu-item-left-menu
+                v-for="(childRoute, index) in route.children" 
+                :route="childRoute" 
+                :menuLevel="menuLevel + 1"
+                :renderSubLevelCount="renderSubLevelCount - 1" 
+              >
+            </menu-item-left-menu>
+        </div>
+    </div>
+</template>

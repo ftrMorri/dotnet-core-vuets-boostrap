@@ -1,0 +1,6 @@
+<script async setup lang="ts">
+</script>
+
+<template>
+    <h5>Experimental dotnet core webapi vuets quasar bootstrap</h5>
+</template>

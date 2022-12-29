@@ -1,0 +1,41 @@
+<script async setup lang="ts">
+import { reactive } from 'vue'
+import api from '../../api';
+import { WeatherForecastModel } from '../../generated';
+
+interface State {
+    forecasts: WeatherForecastModel[]
+}
+
+const state: State = reactive({
+    forecasts: []
+});
+
+async function fetchData() {
+    if (state.forecasts.length <= 0) {
+        state.forecasts = (await api.weatherForecastApi.getWeatherForecast()).data;
+    } else {
+        state.forecasts = [];
+    }
+}
+
+</script>
+
+<template>
+    <h2>This is forecasts page</h2>
+    <q-btn
+        color="primary"
+        @click="fetchData"
+    >
+        Fetch data
+    </q-btn>
+    <q-table
+        title="Forecasts"
+        :rows="state.forecasts"
+        :columns="[
+            { name: 'weatherForecastId', required: true, label: 'Id', field: row => row.weatherForecastId },
+            { name: 'temperatureC',label: 'Temperature', field: row => row.temperatureC },
+            { name: 'date',label: 'Date', field: row => row.date },
+            ]"
+    />
+</template>

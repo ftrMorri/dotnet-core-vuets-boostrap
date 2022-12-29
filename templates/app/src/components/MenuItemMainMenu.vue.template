@@ -1,0 +1,29 @@
+<script lang="ts">
+  export default {
+    name: 'menu-item-main-menu',
+  }
+</script>
+
+<script async setup lang="ts">
+import { PropType } from 'vue';
+import { RouteRecordRaw } from 'vue-router';
+
+const props = defineProps({
+  route: {
+    type: Object as PropType<RouteRecordRaw>, 
+    required: true,
+  },
+  menuLevel: { type: Number, required: true },
+  renderSubLevelCount: { type: Number, required: true },
+});
+
+const visibleChildren = props.route.children?.filter(c => c.meta?.show === true);
+const hasChildren = visibleChildren !== undefined && visibleChildren.values.length > 0;
+
+</script>
+
+<template>
+    <div>
+        <q-route-tab :to="route.path" :label="(route.meta?.label as string)" />
+    </div>
+</template>

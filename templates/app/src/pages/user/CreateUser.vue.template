@@ -1,0 +1,48 @@
+<script async setup lang="ts">
+import { reactive } from 'vue'
+import api from '../../api';
+import { UserCreateRequest, UserModel } from '../../generated';
+
+interface State {
+    request: UserCreateRequest,
+    passwordConfirmation: string,
+    saving: boolean,
+}
+
+const state: State = reactive({
+    request: {
+        email: "",
+        password: ""
+    },
+    passwordConfirmation: "",
+    saving: false,
+});
+
+async function createUser()
+{
+    if (state.request.password !== state.passwordConfirmation) {
+        return;
+    }
+    await api.usersApi.createUser({
+        email: state.request.email,
+        password: state.request.password
+    });
+    
+}
+
+</script>
+
+<template>
+    <h2>Create user</h2>
+
+    <q-input v-model="state.request.email" label="Email" />
+    <q-input type="password" v-model="state.request.password" label="Password" />
+    <q-input type="password" v-model="state.passwordConfirmation" label="Confirm password" />
+
+    <q-btn
+        @click="createUser"
+    >
+        Create
+    </q-btn>    
+
+</template>
