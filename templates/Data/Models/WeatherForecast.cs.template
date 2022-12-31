@@ -1,10 +1,25 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace [[NAME]].Data.Models
 {
-    public class WeatherForecast
+    public class WeatherForecast : BaseEntity
     {
         public int WeatherForecastId { get; set; }
         public DateTime Date { get; set; }
         public int TemperatureC { get; set; }
         public string? Summary { get; set; }
+    }
+
+    public class WeatherForecastTypeConfiguration : IEntityTypeConfiguration<WeatherForecast>
+    {
+        public void Configure(EntityTypeBuilder<WeatherForecast> builder)
+        {
+            builder.HasKey(o => o.WeatherForecastId);
+            builder.Property(o => o.WeatherForecastId)
+                .ValueGeneratedOnAdd();
+            builder.Property(o => o.Summary)
+                .HasMaxLength(255);
+        }
     }
 }

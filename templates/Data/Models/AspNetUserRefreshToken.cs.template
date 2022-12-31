@@ -1,11 +1,22 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace [[NAME]].Data.Models
 {
-    public class AspNetUserRefreshToken
+    public class AspNetUserRefreshToken : BaseEntity
     {
         public Guid RefreshTokenId { get; set; }
         public string AccessToken { get; set; } = default!;
         public string RefreshToken { get; set; } = default!;
         public string Username { get; set; } = default!;
         public DateTime ValidTo { get; set; }
+    }
+
+    public class AspNetUserRefreshTokenTypeConfiguration : IEntityTypeConfiguration<AspNetUserRefreshToken>
+    {
+        public void Configure(EntityTypeBuilder<AspNetUserRefreshToken> builder)
+        {
+            builder.HasKey(o => o.RefreshTokenId);
+        }
     }
 }

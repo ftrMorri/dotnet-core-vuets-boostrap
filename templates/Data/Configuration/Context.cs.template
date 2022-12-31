@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using [[NAME]].Data.Models;
+using System.Reflection;
 
 namespace [[NAME]].Data.Configuration
 {
@@ -20,15 +21,14 @@ namespace [[NAME]].Data.Configuration
             [[ONMODELCREATING_DEFAULTSCHEMA]]
             base.OnModelCreating(builder);
             [[ONMODELCREATING_IDENTITYNAMINGCONVENTIONS]]
-            builder.Entity<WeatherForecast>().ToTable("WeatherForecast");
-            builder.Entity<WeatherForecast>().HasKey(o => o.WeatherForecastId);
-            builder.Entity<WeatherForecast>().Property(o => o.WeatherForecastId)
-                .ValueGeneratedOnAdd();
-            builder.Entity<WeatherForecast>().Property(o => o.Summary)
-                .HasMaxLength(255);
 
-            builder.Entity<AspNetUserRefreshToken>().ToTable("AspNetUserRefreshTokens");
-            builder.Entity<AspNetUserRefreshToken>().HasKey(o => o.RefreshTokenId);
+            builder.ApplyConfigurationsFromAssembly(
+                Assembly.GetExecutingAssembly(), 
+                t => t.GetInterfaces().Any(i => 
+                            i.IsGenericType &&
+                            i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>) &&
+                            typeof(BaseEntity).IsAssignableFrom(i.GenericTypeArguments[0]))
+            );
         }
     }
 }
