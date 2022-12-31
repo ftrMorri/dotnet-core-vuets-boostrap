@@ -5,8 +5,14 @@
 
 * Dotnet 7 SDK ( https://dotnet.microsoft.com/en-us/download/dotnet/7.0 )
 * Node / Npm latest versions ( https://nodejs.org/en/ )
-* SQL Server ( https://www.microsoft.com/en-us/sql-server/sql-server-downloads )
 * OpenApi Generator ( npm install @openapitools/openapi-generator-cli -g )
+* Database
+    * SQL Server ( https://www.microsoft.com/en-us/sql-server/sql-server-downloads )
+        - sqlcmd needs to be in PATH
+    * Postgre SQL
+        - psql needs to be in path
+    * SQLite
+        - TODO
 
 ### Add following to .vscode/launch.json
 
@@ -19,7 +25,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/ConsoleApp/bin/Debug/net7.0/ConsoleApp.dll",
-            "args": ["-iTrue", "-l../Bootstrapper_Generated/", "-nBootstrapDemo", "-s.\\SQLEXPRESS", "-dBootstrapDemo", "-ubootstrapdemouser", "-pbootstrapdemopass"],
+            "args": "args": ["--install=true", "--path=../Bootstrapper_Generated/", "--name=BootstrapDemo", "--dbserver=localhost", "--dbname=bootstrapdemo", "--dbuser=bootstrapdemouser", "--dbpass=bootstrapdemopass", "--dbprovider=postgresql", "--dbadmin=postgres", "--dbadminpass=postgres-admin-pass"],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
@@ -59,4 +65,4 @@
 - [ ] Generic errorhandling for frontend ( toast or something similiar )
 - [ ] Generic errorhandling for backend ( file logging )
 - [ ] Generic paging mechanic example for frontend/backend
-- [ ] Use EF database migrations instead of .sql script -> support multiple databases
+- [x] Use EF database migrations instead of .sql script -> support multiple databases

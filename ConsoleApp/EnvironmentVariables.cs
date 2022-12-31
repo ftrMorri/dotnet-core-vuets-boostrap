@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace StarterTool
+namespace Bootstrapper
 {
     public class EnvironmentVariables
     {
@@ -9,5 +9,9 @@ namespace StarterTool
         public string DatabaseName { get; set; } = default!;
         public string DatabaseUser { get; set; } = default!;
         public string DatabasePassword { get; set; } = default!;
+        public string DatabaseConnectionString { get; set; } = default!;
+        public string EntityFrameworkUsingOption { get; set; } = default!;
+        public string EntityFrameworkDefaultSchema { get; set; } = default!;
+        public string EntityFrameworkIdentityNamingConventions { get; set; } = default!;
     }
 }

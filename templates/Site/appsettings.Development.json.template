@@ -6,7 +6,7 @@
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "Server=[[DBSERVER]];Database=[[DBNAME]];User Id=[[DBUSER]];Password=[[DBPASS]];TrustServerCertificate=True"
+    "DefaultConnection": "[[DBCONNECTIONSTRING]]"
   },
   "JWT": {
     "ValidAudience": "http://localhost",

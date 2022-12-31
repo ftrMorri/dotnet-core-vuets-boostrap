@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using [[NAME]].Data.Configuration;
 using [[NAME]].Services.Services;
+using [[NAME]].Site.Initialize;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager _configuration = builder.Configuration;
@@ -22,7 +23,7 @@ builder.Services.AddSpaStaticFiles(config =>
 });
 
 builder.Services.AddDbContext<MySolutionContext>(
-        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+        options => options.[[ENTITYFRAMEWORKUSINGOPTION]]
 
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -102,5 +103,6 @@ app.MapWhen(x => !(x.Request.Path.Value ?? "").StartsWith("/api"), builder =>
     });
 });
 
+SampleData.Initialize(app.Services);
 
 app.Run();

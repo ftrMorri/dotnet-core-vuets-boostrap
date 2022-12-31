@@ -1,0 +1,87 @@
+using [[NAME]].Data.Configuration;
+using Microsoft.AspNetCore.Identity;
+
+namespace [[NAME]].Site.Initialize;
+
+public class SampleData
+{
+    public static void Initialize(IServiceProvider serviceProvider)
+    {
+        var userScope = serviceProvider.CreateScope();
+        var roleManager = userScope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
+        var userManager = userScope.ServiceProvider.GetService<UserManager<IdentityUser>>();
+
+        if (roleManager == null || userManager == null)
+            throw new Exception("Couldn't initialize rolemanager or usermanager");
+
+        string[] roles = new string[] { "Administrator", "User" };
+
+        foreach (string role in roles)
+        {
+            if (!roleManager.Roles.Any(r => r.Name == role))
+            {
+                roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+
+        var user = new IdentityUser
+        {
+            Email = "admin@example.com",
+            NormalizedEmail = "ADMIN@EXAMPLE.COM",
+            UserName = "admin@example.com",
+            NormalizedUserName = "ADMIN@EXAMPLE.COM",
+            PhoneNumber = "123456",
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = true,
+            SecurityStamp = Guid.NewGuid().ToString("D")
+        };
+
+        if (!userManager.Users.Any(u => u.UserName == user.UserName))
+        {
+            var password = new PasswordHasher<IdentityUser>();
+            var hashed = password.HashPassword(user, "secretpassword");
+            user.PasswordHash = hashed;
+            var result = userManager.CreateAsync(user).Result;
+            if (!result.Succeeded)
+                throw new Exception("Failed to initialize user");
+            var newUser = userManager.FindByEmailAsync("admin@example.com").Result;
+            if (newUser == null)
+                throw new Exception("Initialized user couldn't be found");
+            var addRoleResult = userManager.AddToRoleAsync(newUser, "Administrator").Result;
+            addRoleResult = userManager.AddToRoleAsync(newUser, "User").Result;
+        }
+
+        var contextScope = serviceProvider.CreateScope();
+        var context = contextScope.ServiceProvider.GetService<MySolutionContext>();
+
+        if (context == null)
+            throw new Exception("Couldn't initialize database context");
+
+        if (!context.WeatherForecasts.Any())
+        {
+            context.WeatherForecasts.AddRange(new[]
+            {
+                new Data.Models.WeatherForecast()
+                {
+                    Date = DateTime.Now.AddDays(0).ToUniversalTime(),
+                    TemperatureC = 2,
+                    Summary = "",
+                },
+                new Data.Models.WeatherForecast()
+                {
+                    Date = DateTime.Now.AddDays(-1).ToUniversalTime(),
+                    TemperatureC = 4,
+                    Summary = "",
+                },
+                new Data.Models.WeatherForecast()
+                {
+                    Date = DateTime.Now.AddDays(-2).ToUniversalTime(),
+                    TemperatureC = 6,
+                    Summary = "",
+                },
+            });
+
+            context.SaveChanges();
+        }
+    }
+}

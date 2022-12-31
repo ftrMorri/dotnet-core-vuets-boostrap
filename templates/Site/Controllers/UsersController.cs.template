@@ -48,7 +48,14 @@ public class UsersController : ControllerBase
         if (createdUser == null)
             throw new Exception("Error creating user.");
 
-        await _userManager.AddToRoleAsync(createdUser, "administrator");
+        var roleExist = await _roleManager.RoleExistsAsync("Administrator");
+        if (!roleExist)
+        {
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+            roleResult = await _roleManager.CreateAsync(new IdentityRole("User"));
+        }
+
+        await _userManager.AddToRoleAsync(createdUser, "Administrator");
 
         if (createdUser == null)
             throw new Exception("User creation failed");

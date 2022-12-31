@@ -1,6 +1,6 @@
 ﻿using CliWrap;
 using CommandLine;
-using StarterTool;
+using Bootstrapper;
 
 Options? options = null;
 
@@ -37,17 +37,14 @@ await using var stdIn = Console.OpenStandardInput();
             .ExecuteAsync();
     };
 
-    Func<string, string, CliWrap.CommandTask<CommandResult>> cmdSingleArg = (string command, string argument) => {
-        return Cli.Wrap(command)
-            .WithArguments(argument)
-            .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
-            .WithStandardErrorPipe(PipeTarget.ToStream(stdErr))
-            .WithStandardInputPipe(PipeSource.FromStream(stdIn))
-            .ExecuteAsync();
-    };
+    await CreateVueApp(rootDirectory, options, cmd);
+    await CreateCsharpApp(rootDirectory, options, cmd);
 
-    await CreateVueApp(rootDirectory, options, cmd, cmdSingleArg);
-    await CreateCsharpApp(rootDirectory, options, cmd, cmdSingleArg);
+    var databaseConfigurator = new DatabaseConfigurator(options.DatabaseProvider, 
+        options.DatabaseServer,
+        options.DatabaseName,
+        options.DatabaseUser,
+        options.DatabasePassword);
 
     var variables = new EnvironmentVariables
     {
@@ -56,74 +53,125 @@ await using var stdIn = Console.OpenStandardInput();
         DatabaseName = options.DatabaseName,
         DatabaseUser = options.DatabaseUser,
         DatabasePassword = options.DatabasePassword,
+        DatabaseConnectionString = databaseConfigurator.ConnectionString,
+        EntityFrameworkUsingOption = databaseConfigurator.EntityFrameworkUsingOption,
+        EntityFrameworkDefaultSchema = databaseConfigurator.EntityFrameworkDefaultSchema,
+        EntityFrameworkIdentityNamingConventions = databaseConfigurator.EntityFrameworkIdentityNamingConventions,
     };
 
     CopyTemplates(generatorDirectory, rootDirectory, options, variables);
 
+    await cmd("dotnet", new[] {"build", $"{options.Name}.sln" });
+    
     await CreateDatabase(rootDirectory, options, cmd);
-
-    CommandResult? result = await cmd("dotnet", new[] {"build", $"{options.Name}.sln" });
 }
 
 async Task CreateDatabase(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
 {
-    CommandResult? result = await cmd("sqlcmd", 
-        new[] {"-S", 
-            options.DatabaseServer, 
-            "-i", 
-            Path.Combine(rootDirectory.FullName, $"{options.Name}.Data", "generate.sql")});
+    // dotnet ef migrations add InitialCreate --project .\WebApplication1.Data\WebApplication1.Data.csproj --startup-project .\WebApplication1.Api\WebApplication1.Api.csproj
+    // dotnet ef database update --project .\WebApplication1.Data\WebApplication1.Data.csproj --startup-project .\WebApplication1.Api\WebApplication1.Api.csproj
+    Directory.SetCurrentDirectory(rootDirectory.FullName);
+
+    switch (options.DatabaseProvider)
+    {
+        case "sqlserver":
+            await cmd("sqlcmd", 
+                new[] {"-S", 
+                    options.DatabaseServer, 
+                    "-i", 
+                    Path.Combine($"{options.Name}.Data", "sqlserver-generate.sql")});
+            break;
+        case "postgresql":
+            await cmd("psql", 
+                new[] {"-d", 
+                    $"postgres://{options.DatabaseAdmin}:{options.DatabaseAdminPassword}@localhost", 
+                    "-a", 
+                    "-f", 
+                    Path.Combine($"{options.Name}.Data", "postgresql-generate.sql")});
+            break;
+        case "sqlite":
+            throw new NotImplementedException("sqlite not implemented.");
+        default:
+            throw new Exception($"Unknown database provider '{options.DatabaseProvider}'");
+    }
+
+    await cmd("dotnet", new[] { "ef", "migrations", "add", "InitialCreate", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site"});
+    await cmd("dotnet", new[] { "ef", "database", "update", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site"});
 }
 
-async Task CreateCsharpApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd, Func<string, string, CommandTask<CommandResult>> cmdSingleArg)
+async Task CreateCsharpApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
 {
-    CommandResult? result = await cmd("dotnet", new[] {"new", "sln", "--name", options.Name});
+    await cmd("dotnet", new[] {"new", "sln", "--name", options.Name});
 
-    result = await cmd("dotnet", new[] {"new", "webapi", "--name", options.Name + ".Site"});
-    result = await cmd("dotnet", new[] {"new", "classlib", "--name", options.Name + ".Services"});
-    result = await cmd("dotnet", new[] {"new", "classlib", "--name", options.Name + ".Data"});
-    result = await cmd("dotnet", new[] {"new", "mstest", "--name", options.Name + ".Tests"});
-
-    result = await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Site/{options.Name}.Site.csproj"});
-    result = await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Services/{options.Name}.Services.csproj"});
-    result = await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Data/{options.Name}.Data.csproj"});
-    result = await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj"});
-
-    result = await cmd("dotnet", new[] {"add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj"});
-    result = await cmd("dotnet", new[] {"add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
-
-    result = await cmd("dotnet", new[] {"add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj"});
-    result = await cmd("dotnet", new[] {"add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
-
-    result = await cmd("dotnet", new[] {"add", $"{options.Name}.Services/{options.Name}.Services.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
+    await cmd("dotnet", new[] {"new", "webapi", "--name", options.Name + ".Site"});
+    await cmd("dotnet", new[] {"new", "classlib", "--name", options.Name + ".Services"});
+    await cmd("dotnet", new[] {"new", "classlib", "--name", options.Name + ".Data"});
+    await cmd("dotnet", new[] {"new", "mstest", "--name", options.Name + ".Tests"});
+    await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Site/{options.Name}.Site.csproj"});
+    await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Services/{options.Name}.Services.csproj"});
+    await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Data/{options.Name}.Data.csproj"});
+    await cmd("dotnet", new[] {"sln", "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj"});
+    await cmd("dotnet", new[] {"add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj"});
+    await cmd("dotnet", new[] {"add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
+    await cmd("dotnet", new[] {"add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj"});
+    await cmd("dotnet", new[] {"add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
+    await cmd("dotnet", new[] {"add", $"{options.Name}.Services/{options.Name}.Services.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
 
     Directory.SetCurrentDirectory($"{options.Name}.Site");
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.SpaServices.Extensions"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.SpaServices.Extensions"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    if (options.DatabaseProvider == "sqlserver") 
+    {
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+    }
+    if (options.DatabaseProvider == "postgresql")
+    {
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+    }
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.Design"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer"});
     
     Directory.SetCurrentDirectory($"../{options.Name}.Services");
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    if (options.DatabaseProvider == "sqlserver") 
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+    if (options.DatabaseProvider == "postgresql")
+    {
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+    }
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
     Directory.SetCurrentDirectory($"../{options.Name}.Data");
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    if (options.DatabaseProvider == "sqlserver") 
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+    if (options.DatabaseProvider == "postgresql")
+    {
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+    }
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
     Directory.SetCurrentDirectory($"../{options.Name}.Tests");
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    result = await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    if (options.DatabaseProvider == "sqlserver") 
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+    if (options.DatabaseProvider == "postgresql")
+    {
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+    }
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
 
     Directory.SetCurrentDirectory(rootDirectory.FullName);
 }
 
-async Task CreateVueApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd, Func<string, string, CommandTask<CommandResult>> cmdSingleArg)
+async Task CreateVueApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
 {
     CommandResult? result = await cmd("npm", new[] {"create", "vite@latest", $"{options.Name.ToLower()}-app", "--", "--template", "vue-ts"});// npm init vite@latest my-app -- --template vue-ts
     
@@ -191,10 +239,15 @@ void CopyFilesRecursively(string sourcePath, string targetPath, EnvironmentVaria
         Console.WriteLine($"Creating file {newPath} -> {newPath.Replace(sourcePath, targetPath).Replace(".template", "").Replace("_vscode", ".vscode")}");
         var data = File.ReadAllText(newPath);
         data = data.Replace("[[NAME]]", variables.Name);
-        data = data.Replace("[[DBSERVER]]", variables.DatabaseServer.Replace(@"\", @"\\"));
+        data = data.Replace("[[DBCONNECTIONSTRING]]", variables.DatabaseConnectionString.Replace(@"\", @"\\"));
+        data = data.Replace("[[ENTITYFRAMEWORKUSINGOPTION]]", variables.EntityFrameworkUsingOption); // .Replace(@"\", @"\\"));
         data = data.Replace("[[DBNAME]]", variables.DatabaseName);
         data = data.Replace("[[DBUSER]]", variables.DatabaseUser);
         data = data.Replace("[[DBPASS]]", variables.DatabasePassword);
+        data = data.Replace("[[EFUSING]]", variables.EntityFrameworkUsingOption);
+        data = data.Replace("[[ONMODELCREATING_DEFAULTSCHEMA]]", variables.EntityFrameworkDefaultSchema);
+        data = data.Replace("[[ONMODELCREATING_IDENTITYNAMINGCONVENTIONS]]", variables.EntityFrameworkIdentityNamingConventions);
+        // UseNpgsql
         File.WriteAllText(newPath.Replace(sourcePath, targetPath).Replace(".template", "").Replace("_vscode", ".vscode"), data);
     }
 }

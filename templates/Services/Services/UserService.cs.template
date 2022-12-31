@@ -26,7 +26,7 @@ namespace [[NAME]].Services.Services
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 Username = username,
-                ValidTo = DateTime.Now.AddMonths(1)
+                ValidTo = DateTime.Now.AddMonths(1).ToUniversalTime()
             });
 
             await _db.SaveChangesAsync();

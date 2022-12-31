@@ -17,8 +17,9 @@ namespace [[NAME]].Data.Configuration
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            [[ONMODELCREATING_DEFAULTSCHEMA]]
             base.OnModelCreating(builder);
-
+            [[ONMODELCREATING_IDENTITYNAMINGCONVENTIONS]]
             builder.Entity<WeatherForecast>().ToTable("WeatherForecast");
             builder.Entity<WeatherForecast>().HasKey(o => o.WeatherForecastId);
             builder.Entity<WeatherForecast>().Property(o => o.WeatherForecastId)
