@@ -10,36 +10,44 @@ let axiosInstance = axios.create({
 });
 
 const refreshTokenFn = async () => {
-    const tokens = JSON.parse(localStorage.getItem("tokens") ?? "{}");
-  
+  if (localStorage.getItem("tokens") !== undefined) {
     try {
+      const tokens = JSON.parse(localStorage.getItem("tokens") ?? "{}");
       const response = await axiosInstance.post("/api/auth/renew", {
         accessToken: tokens?.accessToken,
         refreshToken: tokens?.refreshToken,
       });
   
-      const { renewResponse } = response.data;
-  
-      if (!renewResponse?.accessToken) {
+      if (response.data?.accessToken !== undefined) {
         localStorage.removeItem("tokens");
+        localStorage.setItem("tokens", JSON.stringify(response.data));
       }
   
-      localStorage.setItem("tokens", JSON.stringify(renewResponse));
-  
-      return renewResponse;
+      return response.data;
     } catch (error) {
-      localStorage.removeItem("session");
+      localStorage.removeItem("tokens");
     }
-  };
+  }
+};
 
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const tokens = JSON.parse(localStorage.getItem("tokens") ?? "{}");
+    var accessToken = "";
+    var tokensStorage = localStorage.getItem("tokens") as any;
+    
+    if (tokensStorage !== undefined) {
+      const tokens = JSON.parse(tokensStorage ?? "{}");
+      accessToken = tokens.accessToken;
+    }
 
-    if (tokens?.accessToken) {
+    if (accessToken) {
       config.headers = {
         ...config.headers,
-        authorization: `Bearer ${tokens?.accessToken}`,
+        authorization: `Bearer ${accessToken}`,
+      };
+    } else {
+      config.headers = {
+        ...config.headers,
       };
     }
 
@@ -48,11 +56,10 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-axios.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const config = error?.config;
-    console.log("axios.interceptors.response.use(");
     if (error?.response?.status === 401 && !config?.sent) {
       config.sent = true;
 
