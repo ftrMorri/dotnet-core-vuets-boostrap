@@ -20,7 +20,7 @@ public class SampleData
         {
             if (!roleManager.Roles.Any(r => r.Name == role))
             {
-                roleManager.CreateAsync(new IdentityRole(role));
+                var createResult = roleManager.CreateAsync(new IdentityRole(role)).Result;
             }
         }
 
