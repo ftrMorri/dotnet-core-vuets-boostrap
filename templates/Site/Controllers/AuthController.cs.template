@@ -66,7 +66,7 @@ public class AuthController : ControllerBase
 
             return new AuthenticationResponse
             {
-                Token = tokenString,
+                AccessToken = tokenString,
                 RefreshToken = refreshTokenString,
                 Expiration = token.ValidTo
             };
@@ -115,7 +115,7 @@ public class AuthController : ControllerBase
 
             return new AuthenticationResponse
             {
-                Token = tokenString,
+                AccessToken = tokenString,
                 RefreshToken = refreshTokenString,
                 Expiration = token.ValidTo
             };
