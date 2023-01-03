@@ -17,7 +17,7 @@ namespace Bootstrapper
                     case "sqlserver":
                         ConnectionString = $"Server={dbserver};Database={dbname};User Id={dbuser};Password={dbpass};TrustServerCertificate=True";
                         EntityFrameworkUsingOption = @"UseSqlServer(""name=ConnectionStrings:DefaultConnection""));";
-                        EntityFrameworkDefaultSchema = @"modelBuilder.HasDefaultSchema(""dbo"");";
+                        EntityFrameworkDefaultSchema = @"builder.HasDefaultSchema(""dbo"");";
                         EntityFrameworkIdentityNamingConventions = "";
                         break;
                     case "postgresql":
