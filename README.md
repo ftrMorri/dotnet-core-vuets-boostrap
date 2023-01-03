@@ -54,14 +54,10 @@
 
 ### Todo
 
-- [ ] Learn github best practices
-- [ ] Security
-- [ ] Security
 - [ ] Security
 - [ ] Sanity check: check for requirements before starting
-- [ ] Better way to create first user
 - [ ] Configure @-paths for typescript
-- [ ] Release builds
+- [ ] Building for release
 - [ ] Generic errorhandling for frontend ( toast or something similiar )
 - [ ] Generic errorhandling for backend ( file logging )
 - [ ] Generic paging mechanic example for frontend/backend
