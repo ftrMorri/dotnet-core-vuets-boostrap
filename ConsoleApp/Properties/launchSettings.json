@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ConsoleApp": {
+      "commandName": "Project",
+      "commandLineArgs": "--install=true --path=../Bootstrapper_Generated/ --name=Test1 --dbserver=.\\\\SQLEXPRESS --dbname=generator_test1 --dbuser=testuser --dbpass=testpass --dbprovider=sqlserver --dbadmin=postgres --dbadminpass=zuuxSDOo5a"
+    }
+  }
+}
