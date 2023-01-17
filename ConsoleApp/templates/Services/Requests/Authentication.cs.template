@@ -25,4 +25,10 @@ namespace [[NAME]].Services.Requests
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
     }
+    
+    public class UserResponse
+    {
+        public string? Fullname { get; set; }
+        public List<string>? Roles { get; set; }
+    }
 }

@@ -21,6 +21,11 @@ const refreshTokenFn = async () => {
       if (response.data?.accessToken !== undefined) {
         localStorage.removeItem("tokens");
         localStorage.setItem("tokens", JSON.stringify(response.data));
+
+        const userResponse = await axiosInstance.post("/api/auth/user");
+        if (userResponse !== undefined && userResponse.data !== undefined) {
+          localStorage.setItem("user", JSON.stringify(userResponse.data));
+        }
       }
   
       return response.data;
@@ -41,12 +46,12 @@ axiosInstance.interceptors.request.use(
     }
 
     if (accessToken) {
-      config.headers = {
+      (config.headers as any) = {
         ...config.headers,
         authorization: `Bearer ${accessToken}`,
       };
     } else {
-      config.headers = {
+      (config.headers as any) = {
         ...config.headers,
       };
     }
@@ -70,6 +75,8 @@ axiosInstance.interceptors.response.use(
           ...config.headers,
           authorization: `Bearer ${result?.accessToken}`,
         };
+      } else {
+        router.push({ name: "login" });
       }
 
       return axios(config);

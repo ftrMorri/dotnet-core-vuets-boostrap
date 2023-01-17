@@ -93,7 +93,15 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapWhen(x => !(x.Request.Path.Value ?? "").StartsWith("/api"), builder =>
+var excludedPaths = new string[] { "/api" };
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.AcceptLanguage = "fi-FI";
+    await next();
+});
+
+app.MapWhen(x => !excludedPaths.Any(p => (x.Request.Path.Value ?? "").StartsWith(p)), builder =>
 {
     builder.UseSpa(builder2 => {
         if (app.Environment.IsDevelopment())

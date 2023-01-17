@@ -18,7 +18,7 @@ const props = defineProps({
 });
 
 const visibleChildren = props.route.children?.filter(c => c.meta?.show === true);
-const hasChildren = visibleChildren !== undefined && visibleChildren.values.length > 0;
+const hasChildren = visibleChildren !== undefined && visibleChildren.length > 0;
 
 </script>
 
