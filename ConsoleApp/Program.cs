@@ -118,55 +118,56 @@ async Task CreateCsharpApp(DirectoryInfo rootDirectory, Options options, Func<st
     await cmd("dotnet", new[] {"add", $"{options.Name}.Services/{options.Name}.Services.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj"});
 
     Directory.SetCurrentDirectory($"{options.Name}.Site");
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.SpaServices.Extensions"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.SpaServices.Extensions", "-v", "7.0.2"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
     if (options.DatabaseProvider == "sqlserver") 
     {
-        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
     }
     if (options.DatabaseProvider == "postgresql")
     {
-        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
-        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
     }
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.Design"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer"});
+    await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Tools", "-v", "7.0.2" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.Design", "-v", "7.0.2" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer", "-v", "7.0.2" });
     
     Directory.SetCurrentDirectory($"../{options.Name}.Services");
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
     if (options.DatabaseProvider == "sqlserver") 
-        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
     if (options.DatabaseProvider == "postgresql")
     {
-        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
-        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
     }
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
     Directory.SetCurrentDirectory($"../{options.Name}.Data");
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
     if (options.DatabaseProvider == "sqlserver") 
-        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
     if (options.DatabaseProvider == "postgresql")
     {
-        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
-        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
     }
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
     Directory.SetCurrentDirectory($"../{options.Name}.Tests");
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
     if (options.DatabaseProvider == "sqlserver") 
-        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer"});
+        await cmd("dotnet", new[] {"add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
     if (options.DatabaseProvider == "postgresql")
     {
-        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL"});
-        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions"});
+        await cmd("dotnet", new[] {"add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+        await cmd("dotnet", new[] {"add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
     }
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity"});
-    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore"});
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+    await cmd("dotnet", new[] {"add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
 
     Directory.SetCurrentDirectory(rootDirectory.FullName);
 }
