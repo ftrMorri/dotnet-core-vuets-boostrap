@@ -211,4 +211,5 @@ public class AuthController : ControllerBase
             IssuerSigningKey = new SymmetricSecurityKey(secret),
             ClockSkew = TimeSpan.Zero
         };
+    }
 }

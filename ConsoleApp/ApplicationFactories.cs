@@ -1,5 +1,7 @@
 using CliWrap;
 using CommandLine;
+using ConsoleApp.Orchestration;
+using Spectre.Console;
 
 namespace Bootstrapper
 {
@@ -14,12 +16,11 @@ namespace Bootstrapper
                 Func<string, string[], CommandTask<CommandResult>> cmd = (string command, string[] arguments) => {
                     return Cli.Wrap(command)
                         .WithArguments(arguments)
-                        .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
+                        // .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
                         .WithStandardErrorPipe(PipeTarget.ToStream(stdErr))
                         .WithStandardInputPipe(PipeSource.FromStream(stdIn))
                         .ExecuteAsync();
                 };
-
 
                 await ApplicationFactories.CreateVueApp(rootDirectory, options, cmd);
                 await ApplicationFactories.CreateCsharpApp(rootDirectory, options, cmd);
@@ -53,18 +54,30 @@ namespace Bootstrapper
 
         public async static Task CreateVueApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
         {
-            CommandResult? result = await cmd("npm", new[] { "create", "vite@latest", $"{options.Name.ToLower()}-app", "--", "--template", "vue-ts" });// npm init vite@latest my-app -- --template vue-ts
+            var stepManager = new StepManager();
 
-            Directory.SetCurrentDirectory($"{options.Name.ToLower()}-app");
-            result = await cmd("npm", new[] { "install" });
-            result = await cmd("npm", new[] { "install", "axios" });
-            result = await cmd("npm", new[] { "install", "vue-router@4" });
+            // npm init vite@latest my-app -- --template vue-ts
+            stepManager.AddCommandStep(cmd, "npm", new[] { "create", "vite@latest", $"{options.Name.ToLower()}-app", "--", "--template", "vue-ts" });
+            stepManager.AddDirectoryChangeStep($"{options.Name.ToLower()}-app");
+
+            stepManager.AddCommandStep(cmd, "npm", new[] { "install" });
+            stepManager.AddCommandStep(cmd, "npm", new[] { "install", "axios" });
+            stepManager.AddCommandStep(cmd, "npm", new[] { "install", "vue-router@4" });
 
             // Quasar vite-plugin https://quasar.dev/start/vite-plugin
-            result = await cmd("npm", new[] { "install", "quasar", "@quasar/extras" });
-            result = await cmd("npm", new[] { "install", "-D", "@quasar/vite-plugin", "sass@1.32.0" });
+            stepManager.AddCommandStep(cmd, "npm", new[] { "install", "quasar", "@quasar/extras" });
+            stepManager.AddCommandStep(cmd, "npm", new[] { "install", "-D", "@quasar/vite-plugin", "sass@1.32.0" });
 
-            Directory.SetCurrentDirectory(rootDirectory.FullName);
+            stepManager.AddDirectoryChangeStep(rootDirectory.FullName);
+
+            await AnsiConsole.Status()
+                .StartAsync("Installing NPM packages", async ctx =>
+                {
+                    await foreach (var status in stepManager.Run())
+                    {
+                        ctx.Status($"Installing NPM packages [green]{Markup.Escape(status)}[/]");
+                    }
+                });
 
             // Install openapi generator https://openapi-generator.tech/
             // npm install @openapitools/openapi-generator-cli -g
@@ -76,99 +89,122 @@ namespace Bootstrapper
 
         public async static Task CreateCsharpApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
         {
-            await cmd("dotnet", new[] { "new", "sln", "--name", options.Name });
+            var stepManager = new StepManager();
 
-            await cmd("dotnet", new[] { "new", "webapi", "--name", options.Name + ".Site" });
-            await cmd("dotnet", new[] { "new", "classlib", "--name", options.Name + ".Services" });
-            await cmd("dotnet", new[] { "new", "classlib", "--name", options.Name + ".Data" });
-            await cmd("dotnet", new[] { "new", "mstest", "--name", options.Name + ".Tests" });
-            await cmd("dotnet", new[] { "sln", "add", $"{options.Name}.Site/{options.Name}.Site.csproj" });
-            await cmd("dotnet", new[] { "sln", "add", $"{options.Name}.Services/{options.Name}.Services.csproj" });
-            await cmd("dotnet", new[] { "sln", "add", $"{options.Name}.Data/{options.Name}.Data.csproj" });
-            await cmd("dotnet", new[] { "sln", "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj" });
-            await cmd("dotnet", new[] { "add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj" });
-            await cmd("dotnet", new[] { "add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
-            await cmd("dotnet", new[] { "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj" });
-            await cmd("dotnet", new[] { "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
-            await cmd("dotnet", new[] { "add", $"{options.Name}.Services/{options.Name}.Services.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "sln", "--name", options.Name });
 
-            Directory.SetCurrentDirectory($"{options.Name}.Site");
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.SpaServices.Extensions", "-v", "7.0.2" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "webapi", "--name", options.Name + ".Site" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "classlib", "--name", options.Name + ".Services" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "classlib", "--name", options.Name + ".Data" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "mstest", "--name", options.Name + ".Tests" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Site/{options.Name}.Site.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Services/{options.Name}.Services.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Services/{options.Name}.Services.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+
+            stepManager.AddDirectoryChangeStep($"{options.Name}.Site");
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.SpaServices.Extensions", "-v", "7.0.2" });
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
+
             if (options.DatabaseProvider == "sqlserver")
             {
-                await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
             }
             if (options.DatabaseProvider == "postgresql")
             {
-                await cmd("dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
-                await cmd("dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
             }
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Tools", "-v", "7.0.2" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Design", "-v", "7.0.2" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer", "-v", "7.0.2" });
 
-            Directory.SetCurrentDirectory($"../{options.Name}.Services");
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
-            if (options.DatabaseProvider == "sqlserver")
-                await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
-            if (options.DatabaseProvider == "postgresql")
-            {
-                await cmd("dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
-                await cmd("dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
-            }
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
-            Directory.SetCurrentDirectory($"../{options.Name}.Data");
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
-            if (options.DatabaseProvider == "sqlserver")
-                await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
-            if (options.DatabaseProvider == "postgresql")
-            {
-                await cmd("dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
-                await cmd("dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
-            }
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
-            Directory.SetCurrentDirectory($"../{options.Name}.Tests");
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
-            if (options.DatabaseProvider == "sqlserver")
-                await cmd("dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
-            if (options.DatabaseProvider == "postgresql")
-            {
-                await cmd("dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
-                await cmd("dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
-            }
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            await cmd("dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Tools", "-v", "7.0.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Design", "-v", "7.0.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer", "-v", "7.0.2" });
 
-            Directory.SetCurrentDirectory(rootDirectory.FullName);
+            stepManager.AddDirectoryChangeStep($"../{options.Name}.Services");
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
+            if (options.DatabaseProvider == "sqlserver")
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
+            
+            if (options.DatabaseProvider == "postgresql")
+            {
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
+            }
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
+            stepManager.AddDirectoryChangeStep($"../{options.Name}.Data");
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
+            if (options.DatabaseProvider == "sqlserver")
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
+            if (options.DatabaseProvider == "postgresql")
+            {
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
+            }
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
+            stepManager.AddDirectoryChangeStep($"../{options.Name}.Tests");
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.2" });
+
+            if (options.DatabaseProvider == "sqlserver")
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
+            if (options.DatabaseProvider == "postgresql")
+            {
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
+            }
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.2" });
+
+            stepManager.AddDirectoryChangeStep(rootDirectory.FullName);
+
+            await AnsiConsole.Status()
+                .StartAsync("Installing dotnet packages", async ctx =>
+                {
+                    await foreach (var status in stepManager.Run())
+                    {
+                        ctx.Status($"Installing dotnet packages [green]{Markup.Escape(status)}[/]");
+                    }
+                });
         }
 
         public async static Task CreateDatabase(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
         {
             // dotnet ef migrations add InitialCreate --project .\WebApplication1.Data\WebApplication1.Data.csproj --startup-project .\WebApplication1.Api\WebApplication1.Api.csproj
             // dotnet ef database update --project .\WebApplication1.Data\WebApplication1.Data.csproj --startup-project .\WebApplication1.Api\WebApplication1.Api.csproj
-            Directory.SetCurrentDirectory(rootDirectory.FullName);
+            StepManager stepManager = new StepManager();
+
+            stepManager.AddDirectoryChangeStep(rootDirectory.FullName);
 
             switch (options.DatabaseProvider)
             {
                 case "sqlserver":
-                    await cmd("sqlcmd",
+                    stepManager.AddCommandStep(cmd, "sqlcmd",
                         new[] {"-S",
-                    options.DatabaseServer,
-                    "-i",
-                    Path.Combine($"{options.Name}.Data", "sqlserver-generate.sql")});
+                        options.DatabaseServer,
+                        "-i",
+                        Path.Combine($"{options.Name}.Data", "sqlserver-generate.sql")});
                     break;
                 case "postgresql":
-                    await cmd("psql",
+                    stepManager.AddCommandStep(cmd, "psql",
                         new[] {"-d",
-                    $"postgres://{options.DatabaseAdmin}:{options.DatabaseAdminPassword}@localhost",
-                    "-a",
-                    "-f",
-                    Path.Combine($"{options.Name}.Data", "postgresql-generate.sql")});
+                        $"postgres://{options.DatabaseAdmin}:{options.DatabaseAdminPassword}@localhost",
+                        "-a",
+                        "-f",
+                        Path.Combine($"{options.Name}.Data", "postgresql-generate.sql")});
                     break;
                 case "sqlite":
                     throw new NotImplementedException("sqlite not implemented.");
@@ -176,8 +212,17 @@ namespace Bootstrapper
                     throw new Exception($"Unknown database provider '{options.DatabaseProvider}'");
             }
 
-            await cmd("dotnet", new[] { "ef", "migrations", "add", "InitialCreate", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site" });
-            await cmd("dotnet", new[] { "ef", "database", "update", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "ef", "migrations", "add", "InitialCreate", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "ef", "database", "update", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site" });
+
+            await AnsiConsole.Status()
+                .StartAsync("Installing database", async ctx =>
+                {
+                    await foreach (var status in stepManager.Run())
+                    {
+                        ctx.Status($"Installing database [green]{Markup.Escape(status)}[/]");
+                    }
+                });
         }
 
         public static void CopyTemplates(DirectoryInfo generatorDirectory, DirectoryInfo rootDirectory, Options options, EnvironmentVariables variables)

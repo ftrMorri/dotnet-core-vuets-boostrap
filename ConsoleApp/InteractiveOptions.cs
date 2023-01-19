@@ -13,6 +13,7 @@ namespace Bootstrapper
             options.Path = AnsiConsole.Ask<string>("[green]Path[/] where you want to create your application?", "./");
             options.Name = AnsiConsole.Ask<string>("What is your projects [green]name[/]?");
             options.DatabaseServer = AnsiConsole.Ask<string>("What is your databases [green]address[/]?", ".\\SQLEXPRESS");
+            options.DatabaseName = AnsiConsole.Ask<string>("What is your databases [green]name[/]?");
             options.DatabaseUser = AnsiConsole.Ask<string>("Application database [green]username[/]?");
             options.DatabasePassword = AnsiConsole.Ask<string>("Application database users [green]password[/]?");
 
