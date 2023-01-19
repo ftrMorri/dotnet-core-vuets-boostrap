@@ -6,7 +6,7 @@ namespace Bootstrapper
 {
     public class InteractiveOptions
     {
-        public static Options Start()
+        public static Options Ask()
         {
             var options = new Options();
             

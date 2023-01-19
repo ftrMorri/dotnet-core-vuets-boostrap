@@ -10,7 +10,7 @@ Parser.Default.ParseArguments<Options>(args)
 
 if (string.IsNullOrEmpty(options?.Name))
 {
-    options = InteractiveOptions.Start();
+    options = InteractiveOptions.Ask();
 }
 
 if (!options.Install)
