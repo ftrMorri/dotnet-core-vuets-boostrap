@@ -183,8 +183,6 @@ namespace Bootstrapper
 
         public async static Task CreateDatabase(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
         {
-            // dotnet ef migrations add InitialCreate --project .\WebApplication1.Data\WebApplication1.Data.csproj --startup-project .\WebApplication1.Api\WebApplication1.Api.csproj
-            // dotnet ef database update --project .\WebApplication1.Data\WebApplication1.Data.csproj --startup-project .\WebApplication1.Api\WebApplication1.Api.csproj
             StepManager stepManager = new StepManager();
 
             stepManager.AddDirectoryChangeStep(rootDirectory.FullName);
@@ -260,14 +258,14 @@ namespace Bootstrapper
             //Now Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
-                Console.WriteLine($"Creating directory {dirPath} -> {dirPath.Replace(sourcePath, targetPath).Replace("_vscode", ".vscode")}");
+                // Console.WriteLine($"Creating directory {dirPath} -> {dirPath.Replace(sourcePath, targetPath).Replace("_vscode", ".vscode")}");
                 Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath).Replace("_vscode", ".vscode"));
             }
 
             //Copy all the files & Replaces any files with the same name
             foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
             {
-                Console.WriteLine($"Creating file {newPath} -> {newPath.Replace(sourcePath, targetPath).Replace(".template", "").Replace("_vscode", ".vscode")}");
+                // Console.WriteLine($"Creating file {newPath} -> {newPath.Replace(sourcePath, targetPath).Replace(".template", "").Replace("_vscode", ".vscode")}");
                 var data = File.ReadAllText(newPath);
                 data = data.Replace("[[NAME]]", variables.Name);
                 data = data.Replace("[[DBCONNECTIONSTRING]]", variables.DatabaseConnectionString.Replace(@"\", @"\\"));
