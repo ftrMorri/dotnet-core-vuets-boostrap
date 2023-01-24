@@ -1,0 +1,38 @@
+export const enum UserRole {
+    User = 'User',
+    Administrator = 'Administrator',
+}
+
+export const enum AuthenticationStatus {
+    NotAuthenticated,
+    Authenticated,
+}
+
+export class User {
+    roles: UserRole[];
+    userName: string;
+
+    constructor(userName: string, 
+        roles: UserRole[]) {
+            this.userName = userName;
+            this.roles = roles;
+    }
+
+    public static GetCurrent(): User | null {
+        const json = localStorage.getItem("user") ?? "";
+        if (json.length === 0) {
+            return null;
+        }
+
+        return JSON.parse(json) as User;
+    }
+
+    public static SetCurrent(user: User | null) {
+        if (user === null) {
+            localStorage.removeItem("user");
+        } else {
+            localStorage.setItem("user", JSON.stringify(user));
+        }
+    }
+}
+

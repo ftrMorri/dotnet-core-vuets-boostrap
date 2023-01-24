@@ -3,6 +3,8 @@ import MenuItemLeftMenu from '../components/MenuItemLeftMenu.vue';
 import MenuItemMainMenu from '../components/MenuItemMainMenu.vue';
 import { ref, Suspense } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router';
+import { CanAccess } from '../routes/Routes';
+import { User } from '../core/user';
 
 const leftDrawerOpen = ref(true);
 
@@ -27,12 +29,15 @@ function toggleLeftDrawer() {
             </q-toolbar>
 
             <q-tabs align="left">
-                <menu-item-main-menu
-                    v-for="(childRoute, index) in useRouter().options.routes"  :key="index"
-                    :route="childRoute" 
-                    :menuLevel="1"
-                    :renderSubLevelCount="1">
-                </menu-item-main-menu>
+                <template v-for="(childRoute, index) in useRouter().options.routes"  :key="index">
+                    <menu-item-main-menu
+                        v-if="CanAccess(childRoute.meta, User.GetCurrent())"
+                        :route="childRoute" 
+                        :menuLevel="1"
+                        :renderSubLevelCount="1">
+                    </menu-item-main-menu>
+                    <span v-else>NO ACCESS</span>
+                </template>
             </q-tabs>
         </q-header>
 

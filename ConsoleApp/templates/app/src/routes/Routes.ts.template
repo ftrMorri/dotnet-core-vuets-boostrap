@@ -1,5 +1,7 @@
-import { RouteRecordRaw } from "vue-router";
-const Router: Array<RouteRecordRaw> = [
+import { createRouter, createWebHistory, RouteLocation, RouteLocationNormalized, RouteMeta, RouteRecordRaw, useRouter } from "vue-router";
+import { AuthenticationStatus, User, UserRole } from "../core/user";
+
+const routes: Array<RouteRecordRaw> = [
   {
     path: "/home",
     name: "home",
@@ -54,6 +56,7 @@ const Router: Array<RouteRecordRaw> = [
       "label": "Users",
       "separator": false,
       "show": true,
+      "roleRequired": [UserRole.Administrator],
     },
     children: [
       {
@@ -65,6 +68,7 @@ const Router: Array<RouteRecordRaw> = [
             "label": "Manage",
             "separator": true,
             "show": true,
+            "roleRequired": [UserRole.Administrator],
           }  
       },
       {
@@ -76,6 +80,7 @@ const Router: Array<RouteRecordRaw> = [
           "label": "Create User",
           "separator": false,
           "show": true,
+          "roleRequired": [UserRole.Administrator],
         }
     },
     ]
@@ -89,7 +94,66 @@ const Router: Array<RouteRecordRaw> = [
       "label": "Login",
       "separator": false,
       "show": true,
+      "authState": AuthenticationStatus.NotAuthenticated
+    }
+  },
+  {
+    path: "/unauthorized",
+    name: "unauthorized",
+    component: () => import("../pages/login/Unauthorized.vue"),
+    meta: {
+      "icon": "inbox",
+      "label": "Unauthorized",
+      "separator": false,
+      "show": false,
     }
   },
 ];
+
+const Router = createRouter({
+  history: createWebHistory(),
+  routes
+});
+
+export function RequiredRoles(routeMeta: RouteMeta): UserRole[] | null {
+  console.log("routeMeta.roleRequired", routeMeta.roleRequired);
+  const rolesRequired = routeMeta.roleRequired as UserRole[] | null ?? null;
+  return rolesRequired;
+}
+
+export function RequiredAuthState(routeMeta: RouteMeta): AuthenticationStatus | null {
+  const authState = routeMeta.authState as AuthenticationStatus | null ?? null;
+  return authState;
+}
+
+export function CanAccess(routeMeta: RouteMeta | undefined, user: User | null): boolean {
+  console.log("CanAccess " + routeMeta?.label , routeMeta, user);  
+  if (routeMeta == null) {
+    return true;
+  }
+  
+  var routeRoles = RequiredRoles(routeMeta);
+  var routeAuthState = RequiredAuthState(routeMeta);
+  
+  if (routeRoles != null && !user?.roles.some(r => routeRoles?.includes(r))) {
+    return false;
+  }
+
+  if (routeAuthState && user == null) {
+    return false;
+  }
+
+  return true;
+}
+
+Router.beforeEach((to, from, next) => {
+  if (CanAccess(to.meta, User.GetCurrent())) {
+      return next();
+    } else {
+      useRouter().push({
+        name: 'unauthorized'
+      });
+    }
+  });
+
 export default Router;

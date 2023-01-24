@@ -9,15 +9,8 @@ import { Quasar } from 'quasar'
 import '@quasar/extras/material-icons/material-icons.css'
 import 'quasar/src/css/index.sass'
 
-const routes: Array<RouteRecordRaw> = [...Router];
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-});
-
 const app = createApp(App);
-app.use(router);
+app.use(Router);
 app.use(Quasar, {
   plugins: {},
 });

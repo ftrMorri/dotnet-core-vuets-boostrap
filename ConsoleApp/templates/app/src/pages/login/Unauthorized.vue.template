@@ -1,0 +1,8 @@
+<script setup lang="ts">
+</script>
+
+<template>
+    <q-page-container>
+        <h3>Unauthorized to view the page</h3>
+    </q-page-container>
+</template>

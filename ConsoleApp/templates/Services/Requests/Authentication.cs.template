@@ -28,6 +28,7 @@ namespace [[NAME]].Services.Requests
     
     public class UserResponse
     {
+        public string? UserName { get; set; }
         public string? Fullname { get; set; }
         public List<string>? Roles { get; set; }
     }
