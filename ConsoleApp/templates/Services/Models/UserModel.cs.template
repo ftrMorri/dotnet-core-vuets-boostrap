@@ -5,25 +5,6 @@ namespace [[NAME]].Services.Models
         public string Id { get; set; } = default!;
         public string? UserName { get; set; } = default!;
         public string? Email { get; set; } = default!;
-        /*
-	[Id] [nvarchar](450) NOT NULL,
-	[AccessFailedCount] [int] NOT NULL,
-	[ConcurrencyStamp] [nvarchar](max) NULL,
-	[Email] [nvarchar](256) NULL,
-	[EmailConfirmed] [bit] NOT NULL,
-	[LockoutEnabled] [bit] NOT NULL,
-	[LockoutEnd] [datetimeoffset](7) NULL,
-	[NormalizedEmail] [nvarchar](256) NULL,
-	[NormalizedUserName] [nvarchar](256) NULL,
-	[PasswordHash] [nvarchar](max) NULL,
-	[PhoneNumber] [nvarchar](max) NULL,
-	[PhoneNumberConfirmed] [bit] NOT NULL,
-	[SecurityStamp] [nvarchar](max) NULL,
-	[TwoFactorEnabled] [bit] NOT NULL,
-	[UserName] [nvarchar](256) NULL,
-
-        */
-
-
+		public List<string>? Roles { get; set; } = null;
     }
 }

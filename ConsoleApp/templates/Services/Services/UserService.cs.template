@@ -2,15 +2,130 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using [[NAME]].Data.Configuration;
 using [[NAME]].Data.Models;
+using [[NAME]].Services.Models;
+using [[NAME]].Services.Requests;
 
 namespace [[NAME]].Services.Services
 {
     public class UserService : IUserService
     {
         private readonly MySolutionContext _db;
-        public UserService(MySolutionContext context)
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
+        public UserService(MySolutionContext context, 
+            UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _db = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
+        }
+
+        public async Task<UserModel> CreateUser(UserCreateRequest request)
+        {
+            var existing = await _userManager.FindByEmailAsync(request.Email.ToLower());
+            if (existing != null)
+            {
+                return null;
+            }
+
+            var result = await _userManager.CreateAsync(new IdentityUser
+            {
+                UserName = request.Email.ToLower(),
+                Email = request.Email.ToLower(),
+                NormalizedEmail = request.Email.ToLower(),
+                NormalizedUserName = request.Email.ToLower(),
+                SecurityStamp = Guid.NewGuid().ToString()
+            },
+            request.Password);
+
+            var createdUser = await _userManager.FindByEmailAsync(request.Email.ToLower());
+
+            if (createdUser == null)
+                return null;
+
+            var roleExist = await _roleManager.RoleExistsAsync("Administrator");
+            if (!roleExist)
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                roleResult = await _roleManager.CreateAsync(new IdentityRole("User"));
+            }
+
+            await _userManager.AddToRoleAsync(createdUser, "Administrator");
+
+            if (createdUser == null)
+                return null;
+
+            return new UserModel
+            {
+                Id = createdUser.Id,
+                Email = createdUser.Email,
+                UserName = createdUser.UserName,
+                Roles = (await _userManager.GetRolesAsync(createdUser)).ToList()
+            };
+        }
+
+        public async Task<UserModel> EditUser(UserEditRequest request)
+        {
+            var existing = await _userManager.FindByIdAsync(request.UserId.ToLower());
+            if (existing == null)
+                return null;
+
+            if (!string.IsNullOrEmpty(request.CurrentPassword)
+                && !string.IsNullOrEmpty(request.NewPassword))
+            {
+                await _userManager.ChangePasswordAsync(existing, request.CurrentPassword, request.NewPassword);
+            }
+
+            if (request.Roles != null)
+            {
+                var currentRoles = await _userManager.GetRolesAsync(existing);
+
+                foreach (var roleToRemove in currentRoles
+                    .Where(r => !request.Roles.Any(rr => rr == r)))
+                {
+                    await _userManager.RemoveFromRoleAsync(existing, roleToRemove);
+                }
+                foreach (var roleToAdd in request.Roles
+                    .Where(r => !currentRoles.Any(rr => rr == r)))
+                {
+                    await _userManager.AddToRoleAsync(existing, roleToAdd);
+                }
+            }
+
+            existing = await _userManager.FindByIdAsync(request.UserId.ToLower());
+            if (existing == null)
+                return null;
+
+            return new UserModel
+            {
+                Id = existing.Id,
+                Email = existing.Email,
+                UserName = existing.UserName,
+                Roles = (await _userManager.GetRolesAsync(existing)).ToList()
+            };
+        }
+
+        public async Task<List<UserModel>> SearchUsers(UserSearchRequest request)
+        {
+            var query = _userManager.Users;
+
+            if (!string.IsNullOrEmpty(request.Email))
+            {
+                query = query.Where(u => u.NormalizedEmail != null
+                    && u.NormalizedEmail.Contains(request.Email.ToLower()));
+            }
+
+            var users = await query.ToListAsync();
+
+            return users.Select(u => new UserModel
+            {
+                Id = u.Id,
+                Email = u.Email,
+                UserName = u.UserName,
+                Roles = (_userManager.GetRolesAsync(u).Result).ToList()
+            }).ToList();
         }
 
         public async Task<string> CreateRefreshToken(string? username, string accessToken)
@@ -56,6 +171,9 @@ namespace [[NAME]].Services.Services
     public interface IUserService
     {
         Task<string> CreateRefreshToken(string? username, string token);
+        Task<UserModel> CreateUser(UserCreateRequest request);
+        Task<UserModel> EditUser(UserEditRequest request);
+        Task<List<UserModel>> SearchUsers(UserSearchRequest request);
         Task<AspNetUserRefreshToken?> GetRefreshToken(string username, string refreshToken);
     }
 }

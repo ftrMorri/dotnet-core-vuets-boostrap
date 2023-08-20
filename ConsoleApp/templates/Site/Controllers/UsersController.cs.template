@@ -15,6 +15,7 @@ public class UsersController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IUserService _userService;
 
     public UsersController(ILogger<UsersController> logger, IConfiguration configuration, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
     {
@@ -24,65 +25,62 @@ public class UsersController : ControllerBase
         _roleManager = roleManager;
     }
 
-    [HttpPost(), Route("createUser", Name = "CreateUser")]
-    public async Task<UserModel> CreateUser([AsParameters]UserCreateRequest request)
+    public UsersController(ILogger<UsersController> logger, 
+        IConfiguration configuration, 
+        UserManager<IdentityUser> userManager, 
+        RoleManager<IdentityRole> roleManager,
+        IUserService userService)
     {
-        var existing = await _userManager.FindByEmailAsync(request.Email.ToLower());
-        if (existing != null)
+        _logger = logger;
+        _configuration = configuration;
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _userService = userService;
+    }
+
+    [HttpPost(), Route("createUser", Name = "CreateUser")]
+    [ProducesResponseType(typeof(UserModel), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<UserModel>> CreateUser([AsParameters]UserCreateRequest request)
+    {
+        var created = await _userService.CreateUser(request);
+        return Ok(created);
+    }
+
+    [HttpPost(), Route("editUser", Name = "EditUser")]
+    [ProducesResponseType(typeof(UserModel), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<UserModel>> EditUser([AsParameters] UserEditRequest request)
+    {
+        var updated = await _userService.EditUser(request);
+        if (updated == null)
         {
-            throw new Exception("Invalid create user request");
+            return NoContent();
         }
-
-        var result = await _userManager.CreateAsync(new IdentityUser
-        {
-            UserName = request.Email.ToLower(),
-            Email = request.Email.ToLower(),
-            NormalizedEmail = request.Email.ToLower(),
-            NormalizedUserName = request.Email.ToLower(),
-            SecurityStamp = Guid.NewGuid().ToString()
-        },
-        request.Password);
-
-        var createdUser = await _userManager.FindByEmailAsync(request.Email.ToLower());
-
-        if (createdUser == null)
-            throw new Exception("Error creating user.");
-
-        var roleExist = await _roleManager.RoleExistsAsync("Administrator");
-        if (!roleExist)
-        {
-            var roleResult = await _roleManager.CreateAsync(new IdentityRole("Administrator"));
-            roleResult = await _roleManager.CreateAsync(new IdentityRole("User"));
-        }
-
-        await _userManager.AddToRoleAsync(createdUser, "Administrator");
-
-        if (createdUser == null)
-            throw new Exception("User creation failed");
-
-        return new UserModel
-        {
-            Id = createdUser.Id,
-            Email = createdUser.Email,
-            UserName = createdUser.UserName
-        };
+        return Ok(updated);
     }
 
     [HttpPost(), Route("searchUsers", Name = "SearchUsers")]
-    public async Task<List<UserModel>> SearchUsers([AsParameters]UserSearchRequest request)
+    [ProducesResponseType(typeof(List<UserModel>), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<List<UserModel>>> SearchUsers([AsParameters]UserSearchRequest request)
     {
-        var query = _userManager.Users;
+        var result = await _userService.SearchUsers(request);
+        return Ok(result);
+    }
 
-        if (!string.IsNullOrEmpty(request.Email))
+    [HttpPost(), Route("getUser", Name = "GetUser")]
+    [ProducesResponseType(typeof(UserModel), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<UserModel>> GetUser([AsParameters] UserGetRequest request)
+    {
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == request.UserId);
+
+        if (user is null)
+            return NoContent();
+
+        return Ok(new UserModel
         {
-            query = query.Where(u => u.NormalizedEmail != null && u.NormalizedEmail.Contains(request.Email.ToLower()));
-        }
-        var result = await query.ToListAsync();
-        return result.Select(u => new UserModel
-        {
-            Id = u.Id,
-            Email = u.Email,
-            UserName = u.UserName
-        }).ToList();
+            Id = user.Id,
+            Email = user.Email,
+            UserName = user.UserName,
+            Roles = (await _userManager.GetRolesAsync(user)).ToList(),
+        });
     }
 }

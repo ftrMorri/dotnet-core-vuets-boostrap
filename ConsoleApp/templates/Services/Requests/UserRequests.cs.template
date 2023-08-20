@@ -6,8 +6,21 @@ namespace [[NAME]].Services.Requests
         public string Password { get; set; } = default!;
     }
 
+    public class UserEditRequest
+    {
+        public string UserId { get; set; } = default!;
+        public List<string>? Roles { get; set; }
+        public string? CurrentPassword { get; set; } = null;
+        public string? NewPassword { get; set; } = null;
+    }
+
     public class UserSearchRequest
     {
         public string Email { get; set; } = default!;
-    }    
+    }
+
+    public class UserGetRequest
+    {
+        public string UserId { get; set; } = default!;
+    }
 }
