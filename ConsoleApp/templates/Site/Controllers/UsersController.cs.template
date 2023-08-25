@@ -19,14 +19,6 @@ public class UsersController : ControllerBase
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IUserService _userService;
 
-    public UsersController(ILogger<UsersController> logger, IConfiguration configuration, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
-    {
-        _logger = logger;
-        _configuration = configuration;
-        _userManager = userManager;
-        _roleManager = roleManager;
-    }
-
     public UsersController(ILogger<UsersController> logger, 
         IConfiguration configuration, 
         UserManager<IdentityUser> userManager, 
