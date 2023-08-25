@@ -44,19 +44,16 @@
     <None Update="templates\app\src\pages\home\Home.vue.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="templates\app\src\pages\home\RequiresAuth.vue.template">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="templates\app\src\pages\login\Login.vue.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="templates\app\src\pages\login\Unauthorized.vue.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="templates\app\src\pages\user\CreateUser.vue.template">
+    <None Update="templates\app\src\pages\user\List.vue.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="templates\app\src\pages\user\ManageUsers.vue.template">
+    <None Update="templates\app\src\pages\user\Edit.vue.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="templates\app\src\pages\user\User.vue.template">
