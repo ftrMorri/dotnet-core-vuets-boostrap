@@ -1,9 +1,9 @@
-export const enum UserRole {
+export enum UserRole {
     User = 'User',
     Administrator = 'Administrator',
 }
 
-export const enum AuthenticationStatus {
+export enum AuthenticationStatus {
     NotAuthenticated,
     Authenticated,
 }

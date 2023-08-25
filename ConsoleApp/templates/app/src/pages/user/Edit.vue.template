@@ -1,0 +1,138 @@
+<script async setup lang="ts">
+import { reactive, watch } from 'vue'
+import { useRouter } from 'vue-router';
+import api from '../../api';
+import { UserRole } from '../../core/user';
+import { UserCreateRequest, UserEditRequest, UserModel } from '../../generated';
+
+const router = useRouter();
+
+const props = defineProps({
+    mode: String,
+    userId: String,
+});
+
+interface State {
+    user: UserModel | null,
+    createRequest: UserCreateRequest | null,
+    editRequest: UserEditRequest | null,
+    passwordConfirmation: string,
+    loading: boolean,
+}
+
+const state: State = reactive({
+    user: null,
+    createRequest: null,
+    editRequest: null,
+    passwordConfirmation: "",
+    loading: false,
+});
+
+watch(() => props.userId, async () => {
+  await update();
+}, { immediate: true});
+
+const roles = Object.values(UserRole).filter(x => typeof x === "string").map(ur => {
+    return { label: ur.valueOf(), value: ur.valueOf() };
+});
+
+async function update() {
+    state.loading = true;
+    const user = (props.userId == null) 
+        ? { } 
+        : (await api.usersApi.getUser({ userId: props.userId })).data;
+    if (!user || props.mode === 'new') {
+        state.createRequest = { };
+        state.editRequest = null;
+    } else {
+        state.createRequest = null;
+        state.user = user;
+        state.editRequest = {
+            userId: user.id,
+            roles: user.roles
+        };
+    }
+    state.passwordConfirmation = "";
+    state.loading = false;
+}
+
+async function createUser()
+{
+    state.loading = true;
+    if (state.createRequest == null
+        || state.createRequest.password !== state.passwordConfirmation) {
+        return;
+    }
+
+    const createResponse = (await api.usersApi.createUser({
+        email: state.createRequest.email,
+        password: state.createRequest.password
+    })).data;
+
+    state.loading = false;
+
+    if (createResponse.id) {
+        router.push({ name: 'user_edit', params: { mode: "edit", accountId: createResponse.id } });        
+    }
+}
+
+async function editUser() {
+    state.loading = true;
+    if (!state.editRequest) {
+        return;
+    }
+
+    console.log("state.editRequest", state.editRequest);
+
+    const response = (await api.usersApi.editUser({
+        userId: state.editRequest.userId,
+        roles: state.editRequest.roles,
+        currentPassword: state.editRequest.currentPassword,
+        newPassword: state.editRequest.newPassword
+    }));
+
+    await update();
+    
+    state.loading = false;
+}
+
+</script>
+
+<template>
+    <q-page class="q-ma-xl">
+        <template v-if="props.mode === 'new' && state.createRequest">
+            <h5>Create user</h5>
+        
+            <q-input v-model="state.createRequest.email" label="Email" />
+            <q-input type="password" v-model="state.createRequest.password" label="Password" />
+            <q-input type="password" v-model="state.passwordConfirmation" label="Confirm password" />
+        
+            <q-btn
+                @click="createUser"
+            >
+                Create
+            </q-btn>    
+        </template>
+        <template v-if="props.mode === 'edit' && state.editRequest">
+            <h5>Edit user</h5>
+            <h5 v-if="state.user">{{ state.user.userName }}</h5>
+            <q-option-group
+                v-model="state.editRequest.roles"
+                :options="roles"
+                color="green"
+                type="checkbox"
+            />
+
+            <q-input type="password" v-model="state.editRequest.currentPassword" label="Current password" />
+            <q-input type="password" v-model="state.editRequest.newPassword" label="New password" />
+            <q-input type="password" v-model="state.passwordConfirmation" label="Confirm new password" />
+        
+            <q-btn
+                class="q-mt-md"
+                @click="editUser"
+            >
+                Save
+            </q-btn>
+        </template>
+    </q-page>
+</template>

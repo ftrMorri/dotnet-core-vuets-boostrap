@@ -6,7 +6,7 @@
 
 <script async setup lang="ts">
 import { PropType } from 'vue';
-import { RouteRecordRaw } from 'vue-router';
+import { routeLocationKey, RouteRecordRaw } from 'vue-router';
 
 const props = defineProps({
   route: {
@@ -19,6 +19,9 @@ const props = defineProps({
 
 const visibleChildren = props.route.children?.filter(c => c.meta?.show === true);
 const hasChildren = visibleChildren !== undefined && visibleChildren.length > 0;
+
+console.log("route " + props.route.name?.toString())
+console.log("visibleChildren", visibleChildren);
 
 </script>
 
@@ -36,7 +39,7 @@ const hasChildren = visibleChildren !== undefined && visibleChildren.length > 0;
         
         <div v-if="hasChildren && renderSubLevelCount - 1 >= 0" class="q-ml-xs">
             <menu-item-left-menu
-                v-for="(childRoute, index) in route.children" 
+                v-for="(childRoute, index) in visibleChildren" 
                 :route="childRoute" 
                 :menuLevel="menuLevel + 1"
                 :renderSubLevelCount="renderSubLevelCount - 1" 

@@ -13,6 +13,17 @@ const routes: Array<RouteRecordRaw> = [
     },
     children: [
       {
+        path: "about",
+        name: "about",
+        component: () => import("../pages/home/About.vue"),
+        meta: {
+          "icon": "inbox",
+          "label": "About",
+          "separator": true,
+          "show": true,
+        }
+      },      
+      {
         path: "forecasts",
         name: "forecasts",
         component: () => import("../pages/home/Forecasts.vue"),
@@ -20,28 +31,6 @@ const routes: Array<RouteRecordRaw> = [
           "icon": "inbox",
           "label": "Forecasts",
           "separator": true,
-          "show": true,
-        }
-      },
-      {
-        path: "about",
-        name: "about",
-        component: () => import("../pages/home/About.vue"),
-        meta: {
-          "icon": "inbox",
-          "label": "about",
-          "separator": true,
-          "show": true,
-        }
-      },
-      {
-        path: "testAuth",
-        name: "testAuth",
-        component: () => import("../pages/home/RequiresAuth.vue"),
-        meta: {
-          "icon": "inbox",
-          "label": "Test Auth",
-          "separator": false,
           "show": true,
         }
       },
@@ -60,28 +49,29 @@ const routes: Array<RouteRecordRaw> = [
     },
     children: [
       {
-          path: "manage",
-          name: "manage",
-          component: () => import("../pages/user/ManageUsers.vue"),
+          path: "list",
+          name: "user_list",
+          component: () => import("../pages/user/List.vue"),
           meta: {
             "icon": "inbox",
-            "label": "Manage",
+            "label": "Users",
             "separator": true,
             "show": true,
             "roleRequired": [UserRole.Administrator],
-          }  
+          }
       },
       {
-        path: "createUser",
-        name: "createUser",
-        component: () => import("../pages/user/CreateUser.vue"),
+        path: "user/:mode/:userId?",
+        name: "user_edit",
+        component: () => import("../pages/user/Edit.vue"),
         meta: {
           "icon": "inbox",
-          "label": "Create User",
+          "label": "User",
           "separator": false,
-          "show": true,
+          "show": false,
           "roleRequired": [UserRole.Administrator],
-        }
+        },
+        props: true,
     },
     ]
   },
@@ -116,7 +106,6 @@ const Router = createRouter({
 });
 
 export function RequiredRoles(routeMeta: RouteMeta): UserRole[] | null {
-  console.log("routeMeta.roleRequired", routeMeta.roleRequired);
   const rolesRequired = routeMeta.roleRequired as UserRole[] | null ?? null;
   return rolesRequired;
 }
@@ -127,7 +116,6 @@ export function RequiredAuthState(routeMeta: RouteMeta): AuthenticationStatus | 
 }
 
 export function CanAccess(routeMeta: RouteMeta | undefined, user: User | null): boolean {
-  console.log("CanAccess " + routeMeta?.label , routeMeta, user);  
   if (routeMeta == null) {
     return true;
   }

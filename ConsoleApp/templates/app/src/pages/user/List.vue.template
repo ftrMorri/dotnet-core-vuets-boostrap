@@ -1,0 +1,61 @@
+<script async setup lang="ts">
+import { reactive } from 'vue'
+import api from '../../api';
+import { UserModel } from '../../generated';
+
+interface State {
+    users: UserModel[]
+}
+
+const state: State = reactive({
+    users: []
+});
+
+state.users = (await api.usersApi.searchUsers({ email: ""})).data;
+
+</script>
+
+<template>
+  <q-page class="q-ma-xl">
+    <q-table
+        class="table"
+        title="Users"
+        :rows="state.users"
+        :columns="[
+            { name: 'id', required: true, label: 'Id', field: row => row.id, align: 'left' },
+            { name: 'userName',label: 'User name', field: row => row.userName, align: 'left' },
+            { name: 'actions',label: 'Actions', field: row => row.id, align: 'left' },
+            ]"
+    >
+      <template v-slot:top>
+        <q-btn 
+          color="primary" 
+          label="Add user" 
+          :to="{ name: 'user_edit', params: { mode: 'new', userId: null }}" />
+        <q-space />
+      </template>
+
+        <template v-slot:body-cell-actions="props">
+            <q-td :props="props">
+              <div>
+                  <q-btn 
+                    color="primary"
+                    icon="edit" 
+                    dense 
+                    flat
+                    :to="{ name: 'user_edit', params: { mode: 'edit', userId: props.row.id } }"
+                    >
+                  Edit
+                </q-btn>
+              </div>
+            </q-td>
+        </template>    
+    </q-table>
+  </q-page>
+</template>
+
+<style scoped>
+.table {
+    max-width: 700px;
+}
+</style>

@@ -43,7 +43,7 @@ async function logout() {
 </script>
 
 <template>
-    <q-page-container>
+    <q-page class="q-ma-xl">
         <template v-if="User.GetCurrent() == null">
             <q-input v-model="state.request.username" label="Username/Email" />
             <q-input type="password" v-model="state.request.password" label="Password" />
@@ -66,5 +66,5 @@ async function logout() {
                 Logout
             </q-btn>
         </template>
-    </q-page-container>
+    </q-page>
 </template>

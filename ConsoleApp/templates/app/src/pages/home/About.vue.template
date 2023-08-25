@@ -2,5 +2,24 @@
 </script>
 
 <template>
-    <h5>Experimental dotnet core webapi vuets quasar bootstrap</h5>
+    <q-page class="q-ma-xl">
+        <h5>Bootstrap for dotnetcore webapi with vuejs frontend</h5>
+        <p>
+            This project bootstrapper is meant to give you basic structure from which it's easy
+            to start building your application.
+        </p>
+        <p>
+            This includes scaffolding for the following
+            <ul>
+                <li>Frontend ( Vuejs, quasar, typescript )</li>
+                <li>Backend ( dotnet core webapi, c# )</li>
+                <li>User auth/authz based on local database ( dotnet identity, JWT )</li>
+                <li>Database access ( Microsoft SQL Server / PostgreSql, Entity Framework )</li>
+                <li>UI api ( OpenApi with generator )</li>
+            </ul>
+        </p>
+        <p>
+            <a href="https://github.com/ftrMorri/dotnet-core-vuets-boostrap">Visit project page on Github</a>
+        </p>
+    </q-page>
 </template>
