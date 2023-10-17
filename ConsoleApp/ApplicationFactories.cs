@@ -109,65 +109,65 @@ namespace Bootstrapper
 
             stepManager.AddDirectoryChangeStep($"{options.Name}.Site");
 
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.SpaServices.Extensions", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.SpaServices.Extensions", "-v", "7.0.12" });
 
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
 
             if (options.DatabaseProvider == "sqlserver")
             {
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.10" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "8.0.0-rc.2.23480.1" });
             }
             if (options.DatabaseProvider == "postgresql")
             {
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.4" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "8.0.0-rc.2" });
                 stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
             }
 
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Tools", "-v", "7.0.10" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Design", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Tools", "-v", "8.0.0-rc.2.23480.1" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Design", "-v", "8.0.0-rc.2.23480.1" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.10" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Authentication.JwtBearer", "-v", "8.0.0-rc.2.23480.2" });
 
             stepManager.AddDirectoryChangeStep($"../{options.Name}.Services");
 
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
             if (options.DatabaseProvider == "sqlserver")
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "8.0.0-rc.2.23480.1" });
             
             if (options.DatabaseProvider == "postgresql")
             {
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.4" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "8.0.0-rc.2" });
                 stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
             }
 
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
             stepManager.AddDirectoryChangeStep($"../{options.Name}.Data");
 
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
             if (options.DatabaseProvider == "sqlserver")
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "8.0.0-rc.2.23480.1" });
             if (options.DatabaseProvider == "postgresql")
             {
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.10" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "8.0.0-rc.2" });
                 stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
             }
 
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
             stepManager.AddDirectoryChangeStep($"../{options.Name}.Tests");
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
 
             if (options.DatabaseProvider == "sqlserver")
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "7.0.10" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "8.0.0-rc.2.23480.1" });
             if (options.DatabaseProvider == "postgresql")
             {
-                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "7.0.4" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "8.0.0-rc.2" });
                 stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
             }
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "7.0.10" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
 
             stepManager.AddDirectoryChangeStep(rootDirectory.FullName);
 
