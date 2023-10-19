@@ -98,6 +98,12 @@
     <None Update="templates\Data\sqlserver-generate.sql.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="templates\Migrations\appsettings.json.template">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="templates\Migrations\Program.cs.template">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="templates\Services\Models\UserModel.cs.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
