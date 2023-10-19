@@ -48,8 +48,21 @@ namespace Bootstrapper
 
                 await cmd("dotnet", new[] { "build", $"{options.Name}.sln" });
 
+                // Is there some way to script File -> Properties -> Copy to output directory -> Copy always?
+                File.Copy($"{options.Name}.Migrations\\appsettings.json", $"{options.Name}.Migrations\\bin\\Debug\\net8.0\\appsettings.json");
+
+                // Is there some way to set this setting in dotnet new ?
+                ReplaceInFile($"{options.Name}.Site\\{options.Name}.Site.csproj", "    <InvariantGlobalization>true</InvariantGlobalization>", "    <InvariantGlobalization>false</InvariantGlobalization>");
+
                 await ApplicationFactories.CreateDatabase(rootDirectory, options, cmd);
             }
+        }
+
+        private static void ReplaceInFile(string file, string original, string replacement)
+        {
+            string text = File.ReadAllText(file);
+            text = text.Replace(original, replacement);
+            File.WriteAllText(file, text);
         }
 
         public async static Task CreateVueApp(DirectoryInfo rootDirectory, Options options, Func<string, string[], CommandTask<CommandResult>> cmd)
@@ -96,21 +109,23 @@ namespace Bootstrapper
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "webapi", "--name", options.Name + ".Site" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "classlib", "--name", options.Name + ".Services" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "classlib", "--name", options.Name + ".Data" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "console", "--name", options.Name + ".Migrations" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "new", "mstest", "--name", options.Name + ".Tests" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Site/{options.Name}.Site.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Services/{options.Name}.Services.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Migrations/{options.Name}.Migrations.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "sln", "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Site/{options.Name}.Site.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Services/{options.Name}.Services.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Tests/{options.Name}.Tests.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Services/{options.Name}.Services.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", $"{options.Name}.Migrations/{options.Name}.Migrations.csproj", "reference", $"{options.Name}.Data/{options.Name}.Data.csproj" });
 
             stepManager.AddDirectoryChangeStep($"{options.Name}.Site");
 
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.SpaServices.Extensions", "-v", "7.0.12" });
-
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
 
             if (options.DatabaseProvider == "sqlserver")
@@ -134,7 +149,6 @@ namespace Bootstrapper
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
             if (options.DatabaseProvider == "sqlserver")
                 stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "8.0.0-rc.2.23480.1" });
-            
             if (options.DatabaseProvider == "postgresql")
             {
                 stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "8.0.0-rc.2" });
@@ -143,6 +157,7 @@ namespace Bootstrapper
 
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
+
             stepManager.AddDirectoryChangeStep($"../{options.Name}.Data");
 
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
@@ -156,7 +171,26 @@ namespace Bootstrapper
 
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
+
+            stepManager.AddDirectoryChangeStep($"../{options.Name}.Migrations");
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
+            if (options.DatabaseProvider == "sqlserver")
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.SqlServer", "-v", "8.0.0-rc.2.23480.1" });
+            if (options.DatabaseProvider == "postgresql")
+            {
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Npgsql.EntityFrameworkCore.PostgreSQL", "-v", "8.0.0-rc.2" });
+                stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "EFCore.NamingConventions", "-v", "7.0.2" });
+            }
+
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity", "-v", "2.2.0" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.AspNetCore.Identity.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.2" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Tools", "-v", "8.0.0-rc.2.23480.1" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore.Design", "-v", "8.0.0-rc.2.23480.1" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.Extensions.Hosting", "-v", "8.0.0-rc.2.23479.6" });
+
             stepManager.AddDirectoryChangeStep($"../{options.Name}.Tests");
+
             stepManager.AddCommandStep(cmd, "dotnet", new[] { "add", "package", "Microsoft.EntityFrameworkCore", "-v", "8.0.0-rc.2.23480.1" });
 
             if (options.DatabaseProvider == "sqlserver")
@@ -210,8 +244,8 @@ namespace Bootstrapper
                     throw new Exception($"Unknown database provider '{options.DatabaseProvider}'");
             }
 
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "ef", "migrations", "add", "InitialCreate", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site" });
-            stepManager.AddCommandStep(cmd, "dotnet", new[] { "ef", "database", "update", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Site" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "ef", "migrations", "add", "InitialCreate", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Migrations" });
+            stepManager.AddCommandStep(cmd, "dotnet", new[] { "ef", "database", "update", $"--project", $"{options.Name}.Data", $"--startup-project", $"{options.Name}.Migrations" });
 
             await AnsiConsole.Status()
                 .StartAsync("Installing database", async ctx =>

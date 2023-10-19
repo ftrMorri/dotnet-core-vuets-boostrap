@@ -1,0 +1,56 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using [[NAME]].Data.Configuration;
+
+namespace [[NAME]];
+
+public class Program
+{
+    public static void ConfigureServices(HostBuilderContext context, IServiceCollection serviceCollection)
+    {
+        var configuration = new ConfigurationBuilder()
+             .AddJsonFile($"appsettings.json");
+
+        var config = configuration.Build();
+        var connectionString = config.GetConnectionString("ConnectionString");
+
+        serviceCollection.AddDbContext<MySolutionContext>(
+            options => options.[[ENTITYFRAMEWORKUSINGOPTION]]
+
+        serviceCollection.AddIdentity<IdentityUser, IdentityRole>(options => {
+            options.SignIn.RequireConfirmedAccount = false;
+            options.User.RequireUniqueEmail = true;
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 6;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+        })
+            .AddEntityFrameworkStores<MySolutionContext>()
+            .AddDefaultTokenProviders();
+
+    }
+
+    public static async Task<int> Main(string[] args)
+    {
+        using (var host = CreateHostBuilder(args).Build())
+        {
+            await host.StartAsync();
+            var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+
+            lifetime.StopApplication();
+            await host.WaitForShutdownAsync();
+        }
+        return 0;
+    }
+
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host
+            .CreateDefaultBuilder(args)
+            .UseConsoleLifetime()
+            .ConfigureServices(ConfigureServices);
+}
